@@ -114,12 +114,12 @@ message "Install scratch"
 dpkg -i ./packages/*.deb >> $LOG_FILE
 apt install -f >> $LOG_FILE
 message "Install default list of SNAP packages..."
-N_APT=$(cat $SNAP_PACKAGE_LIST | grep -v '#' | wc -l )
+N_SNAP=$(cat $SNAP_PACKAGE_LIST | grep -v '#' | wc -l )
 i=0
 message "Install default list of SNAP packages..."
 for package in $(cat $SNAP_PACKAGE_LIST | grep -v '#'); do
   i=$((c+1))
-  message "Install $i of ${N_APT}: $package"
+  message "Install $i of ${N_SNAP}: $package"
   yes | snap install $package
   if [ $? -gt 0 ]; then
     error_message "Error, can't install $package"
