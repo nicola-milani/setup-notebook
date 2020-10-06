@@ -1,6 +1,6 @@
 #!/bin/bash
 chmod +x ./config
-./config
+
 function message()
 {
     local MSG="$1"
@@ -13,6 +13,10 @@ function error_message()
     echo -e "\e[31m$MSG\e[39m"
 }
 
+message "Get configuration"
+. config
+mkdir -p $LOG_PATH
+touch $LOG_FILE
 
 if ((${EUID:-0} || "$(id -u)")); then
   
@@ -26,14 +30,14 @@ fi
 message "Check status log in $LOG_FILE"
 
 message "Update repositories..."
-apt-get update >> $LOG_FILE
+apt-get update 
 if [ $? -gt 0 ]; then
   error_message "Error, can't update repo"
   exit 1
 fi
 
 message "Add libreoffice repositories"
-sudo add-apt-repository ppa:libreoffice/ppa -y >> $LOG_FILE
+sudo add-apt-repository ppa:libreoffice/ppa -y 
 if [ $? -gt 0 ]; then
   error_message "Error, can't update repo"
   exit 1
