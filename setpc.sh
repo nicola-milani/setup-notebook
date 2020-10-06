@@ -14,8 +14,9 @@ function error_message()
 
 message "Get configuration"
 . config
-mkdir -p /root/setup-log
-touch $LOG_FILE
+mkdir -p $LOG_PATH
+today=$(date +'%Y-%m-%d')
+LOG_FILE=$LOG_PATH/${today}.log
 
 if ((${EUID:-0} || "$(id -u)")); then
   

@@ -1,5 +1,4 @@
-today=$(date +'%Y-%m-%d')
-LOG_FILE="/root/setup-log/${today}.log"
+LOG_PATH="/root/setup-log"
 APT_PACKAGE_LIST="./configs/apt-package-list"
 SNAP_PACKAGE_LIST="./configs/snap-packages-list"
 USERS_LIST="./configs/users-list"
