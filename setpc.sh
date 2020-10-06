@@ -110,8 +110,7 @@ for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
     exit 1
   fi
 done
-message "Install scratch"
-dpkg -i ./packages/*.deb >> $LOG_FILE
+
 apt install -f >> $LOG_FILE
 message "Install default list of SNAP packages..."
 N_SNAP=$(cat $SNAP_PACKAGE_LIST | grep -v '#' | wc -l )
