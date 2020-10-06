@@ -1,5 +1,5 @@
-DATE_FORMAT="%Y-%m-%d"
-today=$(date +\'$DATE_FORMAT\')
+#!/bin/bash
+today=$(date +'%Y-%m-%d')
 LOG_PATH="/root/setup-log"
 LOG_FILE="${LOG_PATH}/v_${today}.log"
 APT_PACKAGE_LIST="./configs/apt-package-list"
