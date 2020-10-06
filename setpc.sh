@@ -1,4 +1,5 @@
 #!/bin/bash
+chmod +x ./config
 ./config
 function message()
 {
