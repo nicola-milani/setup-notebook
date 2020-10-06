@@ -7,9 +7,3 @@ SNAP_PACKAGE_LIST="./configs/snap-packages-list"
 USERS_LIST="./configs/users-list"
 DNS_LIST="./configs/dns-list"
 
-export LOG_PATH
-export LOG_FILE
-export USERS_LIST
-export APT_PACKAGE_LIST
-export SNAP_PACKAGE_LIST
-export DNS_LIST
