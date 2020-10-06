@@ -7,8 +7,6 @@ SNAP_PACKAGE_LIST="./configs/snap-packages-list"
 USERS_LIST="./configs/users-list"
 DNS_LIST="./configs/dns-list"
 
-mkdir -p $LOG_PATH
-
 export LOG_PATH
 export LOG_FILE
 export USERS_LIST
