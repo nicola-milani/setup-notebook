@@ -3,4 +3,3 @@ APT_PACKAGE_LIST="./configs/apt-package-list"
 SNAP_PACKAGE_LIST="./configs/snap-packages-list"
 USERS_LIST="./configs/users-list"
 DNS_LIST="./configs/dns-list"
-
