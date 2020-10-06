@@ -1,5 +1,4 @@
 #!/bin/bash
-chmod +x ./config
 
 function message()
 {
@@ -15,7 +14,7 @@ function error_message()
 
 message "Get configuration"
 . config
-mkdir -p $LOG_PATH
+mkdir -p /root/setup-log
 touch $LOG_FILE
 
 if ((${EUID:-0} || "$(id -u)")); then
