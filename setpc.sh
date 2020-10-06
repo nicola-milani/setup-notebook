@@ -1,4 +1,5 @@
 #!/bin/bash
+./config
 function message()
 {
     local MSG="$1"
@@ -11,79 +12,128 @@ function error_message()
     echo -e "\e[31m$MSG\e[39m"
 }
 
+
+if ((${EUID:-0} || "$(id -u)")); then
+  
+  sleep 1.5
+  echo "You are not root"
+  sleep 0.5
+  echo "Please become root before continue"
+  sleep 1.5
+  exit 1
+fi
+message "Check status log in $LOG_FILE"
+
 message "Update repositories..."
-apt-get update
+apt-get update >> $LOG_FILE
 if [ $? -gt 0 ]; then
-  echo "Error, can't update repo"
+  error_message "Error, can't update repo"
   exit 1
 fi
-apt-get upgrade -y
+
+message "Add libreoffice repositories"
+sudo add-apt-repository ppa:libreoffice/ppa -y >> $LOG_FILE
 if [ $? -gt 0 ]; then
-  echo "Error, can't upgrade "
+  error_message "Error, can't update repo"
   exit 1
 fi
-apt-get dist-upgrade -y
+message "Upgrade system..."
+apt-get upgrade -y >> $LOG_FILE
 if [ $? -gt 0 ]; then
-  echo "Error, can't upgrade"
+  error_message "Error, can't upgrade "
   exit 1
 fi
+apt-get dist-upgrade -y >> $LOG_FILE
+if [ $? -gt 0 ]; then
+  error_message "Error, can't upgrade"
+  exit 1
+fi
+message "Install teamviewer..."
 if [ -f teamviewer_amd64.deb ]; then
   rm teamviewer_amd64.deb
 fi
-wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
+wget -O teamviewer_amd64.deb https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
 if [ $? -gt 0 ]; then
-  echo "Error, can't download teamviewer"
+  error_message "Error, can't download teamviewer"
   exit 1
 fi
 dpkg --force-depends -i teamviewer_amd64.deb
-apt-get install -y -f
-apt --fix-broken install -y
+apt-get install -y -f >> $LOG_FILE
+apt --fix-broken install -y >> $LOG_FILE
 if [ $? -gt 0 ]; then
-  echo "Error, can't fix depends"
+  error_message "Error, can't fix depends"
   exit 1
 fi
+
+message "Install scratch..."
+if [ -f teamviewer_amd64.deb ]; then
+  rm scratch-desktop_3.15.0_amd64.deb
+fi
+wget -O scratch-desktop_3.15.0_amd64.deb  https://sourceforge.net/projects/scratch-deb/files/scratch-desktop_3.15.0_amd64.deb
+if [ $? -gt 0 ]; then
+  error_message "Error, can't download scratch"
+  exit 1
+fi
+apt-get install -y -f >> $LOG_FILE
+apt --fix-broken install -y >> $LOG_FILE
+if [ $? -gt 0 ]; then
+  error_message "Error, can't fix depends"
+  exit 1
+fi
+message "Remove thunderbird..."
 whereis thunderbird | grep usr
 if [ $? -eq 0 ]; then
-  apt-get purge -y thunderbird*
+  apt-get purge -y thunderbird* >> $LOG_FILE
   if [ $? -gt 0 ]; then
-    echo "Error, can't remove thunderbird"
+    error_message "Error, can't remove thunderbird"
     exit 1
   fi
 fi
-apt purge -y gnome-online-accounts gnome-initial-setup
-apt-get install -y chromium-browser crudini nfs-common git geany libreoffice resolvconf ifupdown net-tools gnome-system-tools openssh-server htop iftop tmux
-if [ $? -gt 0 ]; then
-  echo "Error, can't install package"
-  exit 1
-fi
-yes | snap install code --classic
-if [ $? -gt 0 ]; then
-  echo "Error, can't install code"
-  exit 1
-fi
-yes | snap install remmina
-if [ $? -gt 0 ]; then
-  echo "Error, can't install remmina"
-  exit 1
-fi
-yes | snap install vlc
-if [ $? -gt 0 ]; then
-  echo "Error, can't install vlc"
-  exit 1
-fi
-yes | snap install audacity
-if [ $? -gt 0 ]; then
-  echo "Error, can't install audacity"
-  exit 1
-fi
+
+message "Remove gnome-online-accounts and gnome-initial-setup..."
+apt purge -y gnome-online-accounts gnome-initial-setup  >> $LOG_FILE
+
+message "Install default list of APT packages..."
+N_APT=$(cat $APT_PACKAGE_LIST | grep -v '#' | wc -l )
+i=0
+for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
+  i=$((c+1))
+  message "Install $i of ${N_APT}: $package"
+  apt-get install -y $package
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't install package"
+    exit 1
+  fi
+done
+message "Install scratch"
+dpkg -i ./packages/*.deb >> $LOG_FILE
+apt install -f >> $LOG_FILE
+message "Install default list of SNAP packages..."
+N_APT=$(cat $SNAP_PACKAGE_LIST | grep -v '#' | wc -l )
+i=0
+message "Install default list of SNAP packages..."
+for package in $(cat $SNAP_PACKAGE_LIST | grep -v '#'); do
+  i=$((c+1))
+  message "Install $i of ${N_APT}: $package"
+  yes | snap install $package
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't install $package"
+    exit 1
+  fi
+done
+
+message "Remove apport services"
 service apport stop
 sed -ibak -e s/^enabled\=1$/enabled\=0/ /etc/default/apport
 
+message "Remove tracker services"
 systemctl --user mask tracker-store.service tracker-miner-fs.service tracker-miner-rss.service tracker-extract.service tracker-miner-apps.service tracker-writeback.service
 
+message "Remove autoupdate tracker services"
 sudo sed -i 's/APT::Periodic::Update-Package-Lists "1"/APT::Periodic::Update-Package-Lists "0"/' /etc/apt/apt.conf.d/20auto-upgrades
 sudo sed -i 's/APT::Periodic::Unattended-Upgrade "1"/APT::Periodic::Unattended-Upgrade "0"/' /etc/apt/apt.conf.d/20auto-upgrades
 
+message "Add favorites for dock"
 cat > /usr/share/glib-2.0/schemas/90_einaudi.gschema.override << QWK
 [org.gnome.shell]
 favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop', 'com.teamviewer.TeamViewer.desktop', 'geany.desktop','duplicate.desktop' ,'termina-sessione.desktop']
@@ -95,55 +145,35 @@ favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-
 
 QWK
 
-cat /etc/passwd | grep studente
-if [ $? -eq 0 ]; then
-  echo -e "studente\nstudente" | passwd studente
-  usermod -p $(openssl passwd -1 "studente") studente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare studente
-else
-  useradd -s /bin/bash --create-home studente
-  echo -e "studente\nstudente" | passwd studente
-  usermod -p $(openssl passwd -1 "studente") studente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare studente
-fi
 
-cat /etc/passwd | grep docente
-if [ $? -eq 0 ]; then
-  echo -e "docente\ndocente" | passwd docente
-  usermod -p $(openssl passwd -1 "docente") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare docente
-else
-  useradd -s /bin/bash --create-home docente
-  echo -e "docente\ndocente" | passwd docente
-  usermod -p $(openssl passwd -1 "docente") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare docente
-fi
+message "Add custom dns as default dns"
 
-cat /etc/passwd | grep classe
-if [ $? -eq 0 ]; then
-  echo -e "classe\nclasse" | passwd classe
-  usermod -p $(openssl passwd -1 "classe") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare classe
-else
-  useradd -s /bin/bash --create-home classe
-  echo -e "classe\nclasse" | passwd classe
-  usermod -p $(openssl passwd -1 "classe") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare classe
-fi
+N_DNS=$(cat $DNS_LIST | grep -v '#' | wc -l )
+i=0
+string=""
+for dns in $(cat $DNS_LIST | grep -v '#'); do
+  i=$((c+1))
+  if [ -f /etc/resolvconf/resolv.conf.d/head ]; then
+    sed -i '/$dns/d' /etc/resolvconf/resolv.conf.d/head
+  fi
+  echo "nameserver $dns" >> /etc/resolvconf/resolv.conf.d/head
+  sed -i '/$dns/d' /etc/dhcp/dhclient.conf
+  if [ -z $string ]; then
+    string=$dns
+  elif
+    string=$string,$dns
+  fi
+done
 
-if [ -f /etc/resolvconf/resolv.conf.d/head ]; then
-  sed -i '/208.67/d' /etc/resolvconf/resolv.conf.d/head
-fi
-echo "nameserver 208.67.222.123" >> /etc/resolvconf/resolv.conf.d/head
-echo "nameserver 208.67.220.123" >> /etc/resolvconf/resolv.conf.d/head
-sed -i '/208.67/d' /etc/dhcp/dhclient.conf
-echo "supersede domain-name-servers 208.67.222.123,208.67.220.123" >> /etc/dhcp/dhclient.conf
+echo "supersede domain-name-servers $string" >> /etc/dhcp/dhclient.conf
 
-
+message "Add custom mozilla skel for all users"
 rm -rf .mozilla
 unzip ./utils/mozilla.zip
 rm -rf /etc/skel/.mozilla
 mv .mozilla /etc/skel/
+
+message "Add autostart for all users"
 mkdir -p /etc/skel/.config/autostart
 
 cat > /etc/skel/.config/autostart/info.desktop << QWK
@@ -156,69 +186,59 @@ Name=home_info
 Comment=some info about pc
 QWK
 
-
-cat > /usr/local/bin/info.sh << QWK
-#!/bin/bash
-#Mostra un messaggio
-
-zenity --info --text "Ciao, ricordati che questo PC è di proprietà dell'Istituto Luigi Einaudi di Verona \n\nUsa questo PC solo per scopi didattici, per supporto scrivi a supporto-tecnico@einaudivr.it\n\nSalva i tuoi dati regolarmente su drive o supporto esterno" --height "200" --width "400"
-
-QWK
-
+message "Install custom scripts"
+rsync ./usr /usr
 chmod +x /usr/local/bin/info.sh
-
-cat > /usr/share/applications/termina-sessione.desktop << QWK
-[Desktop Entry]
-Name=Logout
-Comment=Termina sessione
-Exec=gnome-session-quit --logout
-Icon=/usr/share/icons/Humanity/actions/48/system-log-out.svg
-Terminal=false
-Type=Application
-StartupNotify=true
-
-QWK
-
-cp ./images/duplicate.svg /usr/share/icons/duplicate.svg
-cp ./utils/02-dual-monitor.sh /usr/bin/02-dual-monitor.sh
 chmod +x /usr/bin/02-dual-monitor.sh
+cp ./images/duplica-monitor.png /usr/share/icons/duplica-monitor.png
 
-cat > /usr/share/applications/duplicate.desktop << QWK
-[Desktop Entry]
-Name=Double screen
-Comment=Duplica schermo
-Exec=/usr/bin/02-dual-monitor.sh
-Icon=/usr/share/icons/duplicate.svg
-Terminal=false
-Type=Application
-StartupNotify=true
-
-QWK
-
+message "Rebuild glibs"
 glib-compile-schemas /usr/share/glib-2.0/schemas/
 
-rm -r /home/studente
-mkdir /home/studente
-cp -rf -r /etc/skel/.config/ /home/studente/
-cp -rf -r /etc/skel/.mozilla/ /home/studente/
-chown -R studente:studente /home/studente
 
-rm -r /home/docente
-mkdir /home/docente
-cp -rf -r /etc/skel/.config/ /home/docente/
-cp -rf -r /etc/skel/.mozilla/ /home/docente/
-chown -R docente:docente /home/docente
+message "Add users or reset users password and clean home"
+N_USERS=$(cat $USERS_LIST | grep -v '#' | wc -l )
+i=0
+for user in $(cat $USERS_LIST | grep -v '#'); do
+  username=$(echo $user | cat -d ";" -f1 )
+  password=$(echo $user | cat -d ";" -f2 )
+  groups=$(echo $user | cat -d ";" -f3 )
+  clean_home=$(echo $user | cat -d ";" -f4 )
+  i=$((c+1))
+  cat /etc/passwd | grep $user
+  if [ $? -eq 0 ]; then
+    if [ $clean_home -gt 0 ]; then
+      message "Clean home for user: $user"
+      rm -rf /home/$user
+      mkdir /home/$user
+      cp -rf -r /etc/skel/.config/ /home/$user/
+      cp -rf -r /etc/skel/.mozilla/ /home/$user/
+      chown -R $user:$user /home/$user
+    fi
+    message "Reset password for user $user"
+    echo -e "$password\n$password" | passwd $user
+    usermod -p $(openssl passwd -1 "$password") $user
+    usermod -a -G $groups $user
+  else
+    message "Add user n° $i of $N_USERS: $user"
+    useradd -s /bin/bash --create-home $user
+    echo -e "$password\n$password" | passwd $user
+    usermod -p $(openssl passwd -1 "$password") $user
+    usermod -a -G $groups $user
+  fi
+done
 
-rm -r /home/classe
-mkdir /home/classe
-cp -rf -r /etc/skel/.config/ /home/classe/
-cp -rf -r /etc/skel/.mozilla/ /home/classe/
-chown -R classe:classe /home/classe
 
-mkdir -p /usr/share/images
-cp -rf ./images/logo_transparent.png /usr/share/images/logo.png
-#wget -O /usr/share/images/logo.png https://raw.githubusercontent.com/nicola-milani/setup-notebook/master/images/logo_transparent.png
 cp -rf /etc/gdm3/greeter.dconf-defaults /etc/gdm3/greeter.dconf-defaults.backup
+message "Find default user"
+for user in $(cat $USERS_LIST | grep -v "#" ); do
+  if [ $(echo $user | cut -d ";" -f 4) -gt 1 ]; then
+    username=$(echo $user | cut -d ";" -f 1)
+    password=$(echo $user | cut -d ";" -f 2)
+  fi
+  message "Default user is: $username"
+done
+message "Fix gmd menu"
 cat > /etc/gdm3/greeter.dconf-defaults << QWK
 #  - Change the GTK+ theme
 [org/gnome/desktop/interface]
@@ -241,7 +261,7 @@ logo='/usr/share/images/logo.png'
  disable-user-list=true
 # - Show a login welcome message
  banner-message-enable=true
- banner-message-text='Benvenuto su ${HOSTNAME} - username e password: "classe"'
+ banner-message-text='Benvenuto su ${HOSTNAME} - username "$username" e password: "$password"'
 
 
 # Automatic suspend
@@ -249,21 +269,12 @@ logo='/usr/share/images/logo.png'
 [org/gnome/settings-daemon/plugins/power]
 QWK
 
+message "Copy new wallpapers"
 cp -rf ./images/wallpaper.png /usr/share/images/wallpaper.png
-
-#wget -O /usr/share/images/wallpaper.png https://raw.githubusercontent.com/nicola-milani/setup-notebook/master/images/wallpaper.png
-#before 20.04
-#cat <<EOT >> /usr/share/gnome-shell/theme/gdm3.css
-##lockDialogGroup {
-#   background: #2c001e url(file:///usr/share/images/wallpaper.png);
-#   background-repeat: no-repeat;
-#   background-size: cover;
-#   background-position: center;
-#}
-#EOT
-
 mv /usr/share/backgrounds/warty-final-ubuntu.png /usr/share/backgrounds/warty-final.png
 cp -fRv /usr/share/images/wallpaper.png /usr/share/backgrounds/warty-final-ubuntu.png
+
+message "Install new boot theme"
 
 if [ -d persona_all_plymouth ]; then
  rm -rf persona_all_plymouth
@@ -301,8 +312,10 @@ else
   update-initramfs -u
 fi
 
+message "Set autologin for default user"
+
 groupadd nopasswdlogin
-usermod -a -G nopasswdlogin classe
+usermod -a -G nopasswdlogin $username
 sed -i '/nopasswdlogin/d' /etc/dhcp/dhclient.conf
 echo "auth sufficient pam_succeed_if.so user ingroup nopasswdlogin" >> /etc/pam.d/gdm-password
 cat <<EOT > /etc/gdm3/custom.conf 
@@ -316,7 +329,7 @@ cat <<EOT > /etc/gdm3/custom.conf
 
 #Enabling automatic login
 AutomaticLoginEnable = true
-AutomaticLogin = classe
+AutomaticLogin = $username
 
 #Enabling timed login
 #TimedLoginEnable = true
@@ -336,33 +349,29 @@ AutomaticLogin = classe
 #Enable=true
 EOT
 
-echo "finish"
 
+
+message "Create service for autoclean home at reboot"
 cat <<EOT > /usr/bin/01_clean_home
 #!/bin/bash
-#ifStart=`date '+%d'`
-#if [ $ifStart == 11 ]; then
-rm -r /home/studente
-mkdir /home/studente
-cp -rf -r /etc/skel/.config/ /home/studente/
-cp -rf -r /etc/skel/.mozilla/ /home/studente/
-chown -R studente:studente /home/studente
-
-rm -r /home/docente
-mkdir /home/docente
-cp -rf -r /etc/skel/.config/ /home/docente/
-cp -rf -r /etc/skel/.mozilla/ /home/docente/
-chown -R docente:docente /home/docente
-
-rm -r /home/classe
-mkdir /home/classe
-cp -rf -r /etc/skel/.config/ /home/classe/
-cp -rf -r /etc/skel/.mozilla/ /home/classe/
-chown -R classe:classe /home/classe
-#fi
 EOT
 
+for user in $(cat $USERS_LIST | grep -v '#'); do
+  username=$(echo $user | cat -d ";" -f1 )
+  clean_home=$(echo $user | cat -d ";" -f4 )
+  if [ $clean_home -gt 0 ]; then
+cat <<EOT >> /usr/bin/01_clean_home
+rm -r /home/$username
+mkdir /home/$username
+cp -rf -r /etc/skel/.config/ /home/$username/
+cp -rf -r /etc/skel/.mozilla/ /home/$username/
+chown -R $username:$username /home/$username
+EOT
+  fi
+done
+
 chmod 744 /usr/bin/01_clean_home
+
 cat <<EOT > /etc/systemd/system/01_clean_home.service
 [Unit]
 After=network.service
@@ -378,17 +387,18 @@ chmod 664 /etc/systemd/system/01_clean_home.service
 sudo systemctl daemon-reload
 sudo systemctl enable 01_clean_home.service
 
+message "Change gdm wallpaper"
 cd /root/setup-notebook
 chmod +x ./utils/ubuntu-20.04-change-gdm-background
 sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper.png"
 
 touch /etc/NetworkManager/conf.d/20-connectivity-ubuntu.conf
 
-echo "finish finish"
-
+message "Remove grub timeout"
 sed -i 's/GRUB_RECORDFAIL_TIMEOUT:-30/GRUB_RECORDFAIL_TIMEOUT:-1/g' /etc/grub.d/00_header
 update-grub
 
 sleep 2
+message "Finish, reboot now"
 
-reboot
+#reboot

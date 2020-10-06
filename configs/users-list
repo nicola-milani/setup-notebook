@@ -1,0 +1,8 @@
+#
+# List of standard users
+# username password groups clean_home default_user
+#
+classe;classe;dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare;1;1
+docente;docente;dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare;1;0
+studente;studente;dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare;1;0
+scuola;giacomo2020;adm,cdrom,sudo,dip,plugdev,lpadmin,lxd,sambashare;0;0
