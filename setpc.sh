@@ -93,6 +93,7 @@ function do_install_custom_software(){
       exit 1
     fi
   fi
+  dpkg -i scratch-desktop_3.15.0_amd64.deb
   apt-get install -y -f >> $LOG_FILE
   apt --fix-broken install -y >> $LOG_FILE
   if [ $? -gt 0 ]; then
