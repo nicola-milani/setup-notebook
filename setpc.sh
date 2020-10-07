@@ -1,5 +1,5 @@
 #!/bin/bash
-N_STEP=19
+N_STEP=20
 STEP=0
 function message(){
     local MSG="$1"
@@ -35,7 +35,7 @@ function checkconnection(){
 }
 
 function do_checkupdate(){
-  apt-get update 
+  apt-get update > /dev/null
   if [ $? -gt 0 ]; then
     error_message "Error, can't update repo"
     exit 1
@@ -44,7 +44,7 @@ function do_checkupdate(){
 
 function do_add_repositories(){
   message "Add libreoffice repositories"
-  sudo add-apt-repository ppa:libreoffice/ppa -y 
+  sudo add-apt-repository ppa:libreoffice/ppa -y > /dev/null
   if [ $? -gt 0 ]; then
     error_message "Error, can't update repo"
     exit 1
@@ -53,13 +53,13 @@ function do_add_repositories(){
 
 function do_full_upgrade_system(){
   message "Upgrade system..."
-  apt-get upgrade -y >> $LOG_FILE
+  apt-get upgrade -y > /dev/null
   if [ $? -gt 0 ]; then
     error_message "Error, can't upgrade "
     exit 1
   fi
   message "Upgrade from all repository..."
-  apt-get dist-upgrade -y >> $LOG_FILE
+  apt-get dist-upgrade -y > /dev/null
   if [ $? -gt 0 ]; then
     error_message "Error, can't upgrade"
     exit 1
@@ -76,9 +76,9 @@ function do_install_custom_software(){
       exit 1
     fi
   fi
-  dpkg --force-depends -i teamviewer_amd64.deb
-  apt-get install -y -f >> $LOG_FILE
-  apt --fix-broken install -y >> $LOG_FILE
+  dpkg --force-depends -i teamviewer_amd64.deb > /dev/null
+  apt-get install -y -f > /dev/null
+  apt --fix-broken install -y > /dev/null
   if [ $? -gt 0 ]; then
     error_message "Error, can't fix depends"
     exit 1
@@ -93,9 +93,9 @@ function do_install_custom_software(){
       exit 1
     fi
   fi
-  dpkg -i scratch-desktop_3.15.0_amd64.deb
-  apt-get install -y -f >> $LOG_FILE
-  apt --fix-broken install -y >> $LOG_FILE
+  dpkg -i scratch-desktop_3.15.0_amd64.deb > /dev/null
+  apt-get install -y -f > /dev/null
+  apt --fix-broken install -y > /dev/null
   if [ $? -gt 0 ]; then
     error_message "Error, can't fix depends"
     exit 1
@@ -106,7 +106,7 @@ function do_remove_some_software(){
   message "Remove thunderbird..."
   whereis thunderbird | grep usr
   if [ $? -eq 0 ]; then
-    apt-get purge -y thunderbird* >> $LOG_FILE
+    apt-get purge -y thunderbird* > /dev/null
     if [ $? -gt 0 ]; then
       error_message "Error, can't remove thunderbird"
       exit 1
@@ -114,7 +114,7 @@ function do_remove_some_software(){
   fi
 
   message "Remove gnome-online-accounts and gnome-initial-setup..."
-  apt purge -y gnome-online-accounts gnome-initial-setup  >> $LOG_FILE
+  apt purge -y gnome-online-accounts gnome-initial-setup  > /dev/null
 }
 
 function do_install_apt(){
@@ -124,7 +124,7 @@ function do_install_apt(){
   for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
     i=$((i+1))
     message "Install $i of ${N_APT}: $package"
-    apt-get install -y $package
+    apt-get install -y $package > /dev/null
     if [ $? -gt 0 ]; then
       error_message "Error, can't install package"
       exit 1
@@ -424,6 +424,12 @@ function do_custom_boot(){
   update-grub
   sleep 2
 }
+
+function do_save_version(){
+  touch $VERSION_FILE
+  echo  $VERSION > $VERSION_FILE
+}
+
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Get configuration"
 . ./config
@@ -505,6 +511,9 @@ do_custom_boot
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Customize GDM"
 do_custom_gdm_wallpaper
+message "Step $STEP of $N_STEP - Update current version"
+do_save_version
+
 sleep 3
 message "Ok all is ok, autoreboot now"
 reboot
