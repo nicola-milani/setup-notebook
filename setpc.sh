@@ -169,7 +169,7 @@ QWK
   glib-compile-schemas /usr/share/glib-2.0/schemas/
 }
 
-function do_fix_network{
+function do_fix_network(){
   message "Add custom dns as default dns"
 
   N_DNS=$(cat $DNS_LIST | grep -v '#' | wc -l )
