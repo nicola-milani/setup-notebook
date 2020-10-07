@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>lightdm-webkit-theme</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/font-awesome.css" rel="stylesheet">
+    <link href="css/theme.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row" style="margin-top:100px">
+            <div class="col-md-4">
+                <div id="log">
+                    <button id="test" type="submit" class="btn">TEST</button><br />
+                </div>
+                <!--<span id="hostname" class="brand">Linux</span>-->
+                <iframe src="message_top.html" height="400" seamless></iframe>
+            </div>
+            <div class="col-md-4 box">
+                <form class="form-signin" role="form">
+                    <h2 class="form-signin-heading"></h2>
+                    <h3 id="authfailed">Autenticazione fallita</h3>
+
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="icon-user"></i></span><input type="email" id="inputUsername" class="form-control" placeholder="AccountID" required autofocus />
+                    </div>
+                    <br />
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="icon-key"></i></span><input type="password" id="inputPassword" class="form-control" placeholder="Password" required />
+                    </div>
+                    <div style="text-align:center; width=100%"><img id="connecting" src="img/connecting.gif" /></div>
+
+                    <br />
+                    <div class="form-group" id="session"> </div>
+                    <!--<div style="text-align:center">
+                    <button class="btn" id="ospite" type="submit" title="Accedi come utente ospite">Ospite</button>
+                </div>-->
+                    <br />
+                    <button class="btn btn-lg btn-primary btn-block" id="login" type="submit">Login</button>
+                </form>
+            </div>
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-3">
+                <img src="img/logo_transparent.png" width="250" height="110" />
+            </div>
+        </div>
+
+        <div class="row">
+            <iframe src="message_center.html" seamless height="250"></iframe>
+        </div>
+        <div class="row">
+            <iframe src="message_bottom.html" seamless height="250"></iframe>
+        </div>
+
+        <div class="actions-bar">
+            <div class="action action-shutdown" onclick="javascript: lightdm.shutdown();">
+                <i></i> Power OFF
+            </div>
+            <div class="action action-reboot" onclick="javascript: lightdm.restart();">
+                <i></i> Restart
+            </div>
+            <div id="clock" class="action action-clock">00:00</div>
+        </div>
+
+    </div>
+    <!-- /container -->
+    <script src="js/jquery-2.1.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/mock.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/clock.js"></script>
+</body>
+
+</html>
