@@ -25,8 +25,8 @@ body {
 }
 
 .box {
-    background-color: #fcf8e3;
-    background-image: url(../img/logo_univr.png);
+    background-color: #fff;
+    /*background-image: url(../img/logo_univr.png);*/
     background-size: 100%;
     background-repeat: no-repeat;
     background-position: center top;
