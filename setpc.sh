@@ -5,11 +5,11 @@ function message(){
     echo -e "\e[32m$MSG\e[39m"
 }
 
-function error_message()
-{
+function error_message(){
     local MSG="$1"
     echo -e "\e[31m$MSG\e[39m"
 }
+
 function checkroot(){
   if [ $(id -u) -gt 0 ]; then
     sleep 1.5
@@ -20,6 +20,7 @@ function checkroot(){
     exit 1
   fi
 }
+
 function do_checkupdate(){
   message "Update repositories..."
   apt-get update 
@@ -51,6 +52,7 @@ function do_full_upgrade_system(){
     exit 1
   fi
 }
+
 function do_install_custom_software(){
   message "Install teamviewer..."
   if [ -f teamviewer_amd64.deb ]; then
@@ -141,6 +143,7 @@ function do_remove_services(){
   message "Remove tracker services"
   systemctl --user mask tracker-store.service tracker-miner-fs.service tracker-miner-rss.service tracker-extract.service tracker-miner-apps.service tracker-writeback.service
 }
+
 function do_disable_update(){
   message "Remove autoupdate tracker services"
   sudo sed -i 's/APT::Periodic::Update-Package-Lists "1"/APT::Periodic::Update-Package-Lists "0"/' /etc/apt/apt.conf.d/20auto-upgrades
@@ -154,11 +157,13 @@ cat > /usr/share/glib-2.0/schemas/90_einaudi.gschema.override << QWK
 favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop', 'com.teamviewer.TeamViewer.desktop', 'geany.desktop','duplicate.desktop' ,'termina-sessione.desktop']
 
 QWK
+
 cat > /usr/share/glib-2.0/schemas/10_gnome-shell.gschema.override << QWK
 [org.gnome.shell]
 favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop', 'com.teamviewer.TeamViewer.desktop', 'geany.desktop','duplicate.desktop' ,'termina-sessione.desktop' ]
 
 QWK
+
   message "Install custom scripts"
   rsync ./usr /usr
   chmod +x /usr/local/bin/info.sh
@@ -192,6 +197,7 @@ function do_fix_network(){
   echo "supersede domain-name-servers $string" >> /etc/dhcp/dhclient.conf
   touch /etc/NetworkManager/conf.d/20-connectivity-ubuntu.conf
 }
+
 function do_custom_skel(){
   message "Add custom mozilla skel for all users"
   rm -rf .mozilla
@@ -213,39 +219,7 @@ Comment=some info about pc
 QWK
 }
 
-function do_create_users(){
-  message "Add users or reset users password and clean home"
-  N_USERS=$(cat $USERS_LIST | grep -v '#' | wc -l )
-  i=0
-  for user in $(cat $USERS_LIST | grep -v '#'); do
-    username=$(echo $user | cat -d ";" -f1 )
-    password=$(echo $user | cat -d ";" -f2 )
-    groups=$(echo $user | cat -d ";" -f3 )
-    clean_home=$(echo $user | cat -d ";" -f4 )
-    i=$((c+1))
-    cat /etc/passwd | grep $user
-    if [ $? -eq 0 ]; then
-      if [ $clean_home -gt 0 ]; then
-        message "Clean home for user: $user"
-        rm -rf /home/$user
-        mkdir /home/$user
-        cp -rf -r /etc/skel/.config/ /home/$user/
-        cp -rf -r /etc/skel/.mozilla/ /home/$user/
-        chown -R $user:$user /home/$user
-      fi
-      message "Reset password for user $user"
-      echo -e "$password\n$password" | passwd $user
-      usermod -p $(openssl passwd -1 "$password") $user
-      usermod -a -G $groups $user
-    else
-      message "Add user n° $i of $N_USERS: $user"
-      useradd -s /bin/bash --create-home $user
-      echo -e "$password\n$password" | passwd $user
-      usermod -p $(openssl passwd -1 "$password") $user
-      usermod -a -G $groups $user
-    fi
-  done
-  cp -rf /etc/gdm3/greeter.dconf-defaults /etc/gdm3/greeter.dconf-defaults.backup
+function do_set_default_login(){
   message "Find default user"
   for user in $(cat $USERS_LIST | grep -v "#" ); do
     if [ $(echo $user | cut -d ";" -f 4) -gt 1 ]; then
@@ -254,6 +228,7 @@ function do_create_users(){
     fi
     message "Default user is: $username"
   done
+  cp -rf /etc/gdm3/greeter.dconf-defaults /etc/gdm3/greeter.dconf-defaults.backup
   message "Fix gmd menu"
 cat > /etc/gdm3/greeter.dconf-defaults << QWK
 #  - Change the GTK+ theme
@@ -325,7 +300,51 @@ AutomaticLogin = $username
 # Additionally lets the X server dump core if it crashes
 #Enable=true
 EOT
+}
 
+function do_create_users(){
+  message "Add users or reset users password and clean home"
+  N_USERS=$(cat $USERS_LIST | grep -v '#' | wc -l )
+  i=0
+  for user in $(cat $USERS_LIST | grep -v '#'); do
+    username=$(echo $user | cat -d ";" -f1 )
+    password=$(echo $user | cat -d ";" -f2 )
+    groups=$(echo $user | cat -d ";" -f3 )
+    clean_home=$(echo $user | cat -d ";" -f4 )
+    i=$((c+1))
+    cat /etc/passwd | grep $user
+    if [ $? -eq 0 ]; then
+      if [ $clean_home -gt 0 ]; then
+        message "Clean home for user: $user"
+        rm -rf /home/$user
+        mkdir /home/$user
+        cp -rf -r /etc/skel/.config/ /home/$user/
+        cp -rf -r /etc/skel/.mozilla/ /home/$user/
+        chown -R $user:$user /home/$user
+      fi
+      message "Reset password for user $user"
+      echo -e "$password\n$password" | passwd $user
+      usermod -p $(openssl passwd -1 "$password") $user
+      usermod -a -G $groups $user
+    else
+      message "Add user n° $i of $N_USERS: $user"
+      useradd -s /bin/bash --create-home $user
+      echo -e "$password\n$password" | passwd $user
+      usermod -p $(openssl passwd -1 "$password") $user
+      usermod -a -G $groups $user
+    fi
+  done
+
+}
+
+function do_custom_gdm_wallpaper(){
+  message "Change gdm wallpaper"
+  cd /root/setup-notebook
+  chmod +x ./utils/ubuntu-20.04-change-gdm-background
+  sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper.png"
+}
+
+function do_create_services(){
   message "Create service for autoclean home at reboot"
 cat <<EOT > /usr/bin/01_clean_home
 #!/bin/bash
@@ -357,19 +376,15 @@ ExecStart=/usr/bin/01_clean_home
 [Install]
 WantedBy=default.target
 EOT
+}
 
+function do_enable_services(){
   chmod 664 /etc/systemd/system/01_clean_home.service
   sudo systemctl daemon-reload
   sudo systemctl enable 01_clean_home.service
-
-  message "Change gdm wallpaper"
-  cd /root/setup-notebook
-  chmod +x ./utils/ubuntu-20.04-change-gdm-background
-  sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper.png"
-
 }
 
-fuction do_custom_boot(){
+function do_custom_boot(){
   message "Install new boot theme"
   if [ -d persona_all_plymouth ]; then
     rm -rf persona_all_plymouth
@@ -430,6 +445,10 @@ do_fix_network
 do_custom_skel
 #Add or reset users and fix login screen
 do_create_users
+do_set_default_login
+do_create_services
+do_enable_services
+do_custom_gdm_wallpaper
 #Install new custom boot theme
 do_custom_boot
 
