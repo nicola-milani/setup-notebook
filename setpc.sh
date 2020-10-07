@@ -224,10 +224,10 @@ QWK
 
 function do_set_default_login(){
   message "Find default user"
-  for user in $(cat $USERS_LIST | grep -v "#" ); do
-    if [ $(echo $user | cut -d ";" -f 4) -gt 1 ]; then
-      username=$(echo $user | cut -d ";" -f 1)
-      password=$(echo $user | cut -d ";" -f 2)
+  for user in $(cat $USERS_LIST | grep -v '#' ); do
+    if [ $(echo $user | cut -d ";" -f5) -gt 0 ]; then
+      username=$(echo $user | cut -d ";" -f1)
+      password=$(echo $user | cut -d ";" -f2)
     fi
     message "Default user is: $username"
   done
@@ -310,11 +310,11 @@ function do_create_users(){
   N_USERS=$(cat $USERS_LIST | grep -v '#' | wc -l )
   i=0
   for user in $(cat $USERS_LIST | grep -v '#'); do
-    username=$(echo $user | cat -d ";" -f1 )
-    password=$(echo $user | cat -d ";" -f2 )
-    groups=$(echo $user | cat -d ";" -f3 )
-    clean_home=$(echo $user | cat -d ";" -f4 )
-    i=$((c+1))
+    username=$(echo $user | cut -d ";" -f1 )
+    password=$(echo $user | cut -d ";" -f2 )
+    groups=$(echo $user | cut -d ";" -f3 )
+    clean_home=$(echo $user | cut -d ";" -f4 )
+    i=$((i+1))
     cat /etc/passwd | grep $username
     if [ $? -eq 0 ]; then
       if [ $clean_home -gt 0 ]; then
