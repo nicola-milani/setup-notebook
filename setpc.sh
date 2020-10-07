@@ -22,6 +22,18 @@ function checkroot(){
   fi
 }
 
+
+function checkconnection(){
+  ping -q -w1 -c1 google.com &>/dev/null && message online || echo offline
+  wget -q --spider http://google.com
+  if [ $? -eq 0 ]; then
+    message "Online"
+  else
+    error_message "Offline"
+    exit 1
+  fi
+}
+
 function do_checkupdate(){
   apt-get update 
   if [ $? -gt 0 ]; then
@@ -351,8 +363,8 @@ function do_create_services(){
   message "Create service for autoclean home at reboot"
   echo "#!/bin/bash" > /usr/bin/01_clean_home
   for user in $(cat $USERS_LIST | grep -v '#'); do
-    username=$(echo $user | cat -d ";" -f1 )
-    clean_home=$(echo $user | cat -d ";" -f4 )
+    username=$(echo $user | cut -d ";" -f1 )
+    clean_home=$(echo $user | cut -d ";" -f4 )
     if [ $clean_home -gt 0 ]; then
 
     echo "rm -r /home/$username" >> /usr/bin/01_clean_home
