@@ -514,6 +514,10 @@ do_custom_gdm_wallpaper
 message "Step $STEP of $N_STEP - Update current version"
 do_save_version
 
+. $VERSION_FILE
+sed -i 's/hostname/$HOSTNAME/g' /usr/share/lightdm-webkit/theme/ein-theme/message_right.html
+sed -i 's/version/$SCRIPT_VERSION/g' /usr/share/lightdm-webkit/theme/ein-theme/message_right.html
+
 sleep 3
 message "Ok all is ok, autoreboot now"
 reboot
