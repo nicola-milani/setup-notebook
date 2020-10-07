@@ -184,7 +184,7 @@ function do_fix_network(){
     sed -i '/$dns/d' /etc/dhcp/dhclient.conf
     if [ -z $string ]; then
       string=$dns
-    elif
+    else
       string=$string,$dns
     fi
   done
