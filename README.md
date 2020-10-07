@@ -32,3 +32,5 @@ per eseguire il setup rendere setpc.sh eseguibile con
 chmod +x setpc.sh
 ed eseguirlo con ./setpc.sh
 (Richiede privilegi di root e una connessione ad internet)
+
+Per aggiornare teamviewer e scratch elimanare i file .deb dalla cartella setup-notebook
