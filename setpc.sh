@@ -67,13 +67,13 @@ function do_full_upgrade_system(){
 
 function do_install_custom_software(){
   message "Install teamviewer..."
-  if [ -f teamviewer_amd64.deb ]; then
-    rm teamviewer_amd64.deb
-  fi
-  wget -O teamviewer_amd64.deb https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-  if [ $? -gt 0 ]; then
-    error_message "Error, can't download teamviewer"
-    exit 1
+  if [ ! -f teamviewer_amd64.deb ]; then
+    #rm teamviewer_amd64.deb
+    wget -O teamviewer_amd64.deb https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't download teamviewer"
+      exit 1
+    fi
   fi
   dpkg --force-depends -i teamviewer_amd64.deb
   apt-get install -y -f >> $LOG_FILE
@@ -84,13 +84,13 @@ function do_install_custom_software(){
   fi
 
   message "Install scratch..."
-  if [ -f teamviewer_amd64.deb ]; then
-    rm scratch-desktop_3.15.0_amd64.deb
-  fi
-  wget -O scratch-desktop_3.15.0_amd64.deb  https://sourceforge.net/projects/scratch-deb/files/scratch-desktop_3.15.0_amd64.deb
-  if [ $? -gt 0 ]; then
-    error_message "Error, can't download scratch"
-    exit 1
+  if [ ! -f scratch-desktop_3.15.0_amd64.deb ]; then
+    # rm scratch-desktop_3.15.0_amd64.deb
+    wget -O scratch-desktop_3.15.0_amd64.deb https://sourceforge.net/projects/scratch-deb/files/scratch-desktop_3.15.0_amd64.deb
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't download scratch"
+      exit 1
+    fi
   fi
   apt-get install -y -f >> $LOG_FILE
   apt --fix-broken install -y >> $LOG_FILE
@@ -496,13 +496,13 @@ do_create_services
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Enable services"
 do_enable_services
-STEP=$((STEP+1))
-message "Step $STEP of $N_STEP - Customize GDM"
-do_custom_gdm_wallpaper
 #Install new custom boot theme
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - New custom boot theme"
 do_custom_boot
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize GDM"
+do_custom_gdm_wallpaper
 sleep 3
 message "Ok all is ok, autoreboot now"
 reboot
