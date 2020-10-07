@@ -168,7 +168,7 @@ favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-
 QWK
 
   message "Install custom scripts"
-  rsync ./usr /usr
+  rsync -av ./usr/ /usr/
   chmod +x /usr/local/bin/info.sh
   chmod +x /usr/bin/02-dual-monitor.sh
   cp ./images/duplica-monitor.png /usr/share/icons/duplica-monitor.png
@@ -315,26 +315,26 @@ function do_create_users(){
     groups=$(echo $user | cat -d ";" -f3 )
     clean_home=$(echo $user | cat -d ";" -f4 )
     i=$((c+1))
-    cat /etc/passwd | grep $user
+    cat /etc/passwd | grep $username
     if [ $? -eq 0 ]; then
       if [ $clean_home -gt 0 ]; then
-        message "Clean home for user: $user"
-        rm -rf /home/$user
-        mkdir /home/$user
-        cp -rf -r /etc/skel/.config/ /home/$user/
-        cp -rf -r /etc/skel/.mozilla/ /home/$user/
-        chown -R $user:$user /home/$user
+        message "Clean home for user: $username"
+        rm -rf /home/$username
+        mkdir /home/$username
+        cp -rf -r /etc/skel/.config/ /home/$username/
+        cp -rf -r /etc/skel/.mozilla/ /home/$username/
+        chown -R $username:$username /home/$username
       fi
-      message "Reset password for user $user"
-      echo -e "$password\n$password" | passwd $user
-      usermod -p $(openssl passwd -1 "$password") $user
-      usermod -a -G $groups $user
+      message "Reset password for user $username"
+      echo -e "$password\n$password" | passwd $username
+      usermod -p $(openssl passwd -1 "$password") $username
+      usermod -a -G $groups $username
     else
-      message "Add user n° $i of $N_USERS: $user"
-      useradd -s /bin/bash --create-home $user
-      echo -e "$password\n$password" | passwd $user
-      usermod -p $(openssl passwd -1 "$password") $user
-      usermod -a -G $groups $user
+      message "Add user n° $i of $N_USERS: $username"
+      useradd -s /bin/bash --create-home $username
+      echo -e "$password\n$password" | passwd $username
+      usermod -p $(openssl passwd -1 "$password") $username
+      usermod -a -G $groups $username
     fi
   done
 
