@@ -58,6 +58,7 @@ function do_full_upgrade_system(){
     error_message "Error, can't upgrade "
     exit 1
   fi
+  message "Upgrade from all repository..."
   apt-get dist-upgrade -y >> $LOG_FILE
   if [ $? -gt 0 ]; then
     error_message "Error, can't upgrade"
