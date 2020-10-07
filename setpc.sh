@@ -346,21 +346,18 @@ function do_custom_gdm_wallpaper(){
 
 function do_create_services(){
   message "Create service for autoclean home at reboot"
-cat <<EOT > /usr/bin/01_clean_home
-#!/bin/bash
-EOT
-
+  echo "#!/bin/bash" > /usr/bin/01_clean_home
   for user in $(cat $USERS_LIST | grep -v '#'); do
     username=$(echo $user | cat -d ";" -f1 )
     clean_home=$(echo $user | cat -d ";" -f4 )
     if [ $clean_home -gt 0 ]; then
-cat <<EOT >> /usr/bin/01_clean_home
-rm -r /home/$username
-mkdir /home/$username
-cp -rf -r /etc/skel/.config/ /home/$username/
-cp -rf -r /etc/skel/.mozilla/ /home/$username/
-chown -R $username:$username /home/$username
-EOT 
+
+    echo "rm -r /home/$username" >> /usr/bin/01_clean_home
+    echo "mkdir /home/$username"  >> /usr/bin/01_clean_home
+    echo "cp -rf -r /etc/skel/.config/ /home/$username/"  >> /usr/bin/01_clean_home
+    echo "cp -rf -r /etc/skel/.mozilla/ /home/$username/" >> /usr/bin/01_clean_home
+    echo "chown -R $username:$username /home/$username" >> /usr/bin/01_clean_home
+
     fi
   done
 
@@ -376,6 +373,7 @@ ExecStart=/usr/bin/01_clean_home
 [Install]
 WantedBy=default.target
 EOT
+
 }
 
 function do_enable_services(){
