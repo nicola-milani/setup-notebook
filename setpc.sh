@@ -100,6 +100,18 @@ function do_install_custom_software(){
     error_message "Error, can't fix depends"
     exit 1
   fi
+
+  apt-get install -y lightdm
+  wget https://download.opensuse.org/repositories/home:/antergos/xUbuntu_17.10/amd64/lightdm-webkit2-greeter_2.2.5-1+15.31_amd64.deb
+  dpkg -i lightdm-webkit2-greeter_2.2.5-1+15.31_amd64.deb
+cat < /etc/lightdm/lightdm.conf << EOF
+[Seat:*]
+greeter-session=lightdm-webkit2-greeter
+greeter-hide-users=true
+greeter-show-manual-login=true
+
+EOF
+mv /usr/share/wayland-sessions/ubuntu-wayland.desktop /usr/share/wayland-sessions/ubuntu-wayland.desktop.back
 }
 
 function do_remove_some_software(){
@@ -428,6 +440,9 @@ function do_custom_boot(){
 function do_save_version(){
   touch $VERSION_FILE
   echo  $VERSION > $VERSION_FILE
+  . $VERSION_FILE
+  sed -i "s/hostname/$HOSTNAME/g" /usr/share/lightdm-webkit/themes/ein-theme/message_right.html
+  sed -i "s/version/$SCRIPT_VERSION/g" /usr/share/lightdm-webkit/themes/ein-theme/message_right.html
 }
 
 STEP=$((STEP+1))
@@ -513,10 +528,6 @@ message "Step $STEP of $N_STEP - Customize GDM"
 do_custom_gdm_wallpaper
 message "Step $STEP of $N_STEP - Update current version"
 do_save_version
-
-. $VERSION_FILE
-sed -i 's/hostname/$HOSTNAME/g' /usr/share/lightdm-webkit/theme/ein-theme/message_right.html
-sed -i 's/version/$SCRIPT_VERSION/g' /usr/share/lightdm-webkit/theme/ein-theme/message_right.html
 
 sleep 3
 message "Ok all is ok, autoreboot now"
