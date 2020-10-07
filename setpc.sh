@@ -1,5 +1,6 @@
 #!/bin/bash
-
+N_STEP=19
+STEP=0
 function message(){
     local MSG="$1"
     echo -e "\e[32m$MSG\e[39m"
@@ -22,7 +23,6 @@ function checkroot(){
 }
 
 function do_checkupdate(){
-  message "Update repositories..."
   apt-get update 
   if [ $? -gt 0 ]; then
     error_message "Error, can't update repo"
@@ -108,7 +108,7 @@ function do_install_apt(){
   N_APT=$(cat $APT_PACKAGE_LIST | grep -v '#' | wc -l )
   i=0
   for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
-    i=$((c+1))
+    i=$((i+1))
     message "Install $i of ${N_APT}: $package"
     apt-get install -y $package
     if [ $? -gt 0 ]; then
@@ -127,7 +127,7 @@ function do_install_snap(){
   while read package; do
     echo $package | grep '#' > /dev/null
     if [ $? -gt 0 ]; then
-      i=$((c+1))
+      i=$((i+1))
       message "Install $i of ${N_SNAP}: $package"
       yes | snap install $package
       if [ $? -gt 0 ]; then
@@ -410,48 +410,87 @@ function do_custom_boot(){
   update-grub
   sleep 2
 }
-message "Get configuration"
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Get configuration"
 . ./config
 
 checkroot
+
 message "Create log direcotory and log file"
 mkdir -p $LOG_PATH
 today=$(date +'%Y-%m-%d')
 LOG_FILE=$LOG_PATH/${today}.log
-
 message "Check status log in $LOG_FILE"
+touch $LOG_FILE
+
 #check for software update
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Update repositories..."
 do_checkupdate
 #add custom repositories
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - add custom repositories"
 do_add_repositories
 #full upgrade the OS and software
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Upgrade all software"
 do_full_upgrade_system
 #Install teamviewer and scratch
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install custom software"
 do_install_custom_software
 #Remove some software
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Remove unused software"
 do_remove_some_software
 #Install from list of APT packages define in .config file
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install list of APT package"
 do_install_apt
 #Install from list of SNAP packages define in .config file
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install list of SNAP package"
 do_install_snap
 #Remove some services (tracker and apport)
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Disable services"
 do_remove_services
 #Disable autoupdate
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Disable auto update"
 do_disable_update
 #ADD favorites to dock
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize dock"
 do_custom_dock
 #Fix some network details
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Fix some network details"
 do_fix_network
 #Add custom skel for users
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize skel for users"
 do_custom_skel
 #Add or reset users and fix login screen
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Create default users"
 do_create_users
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Set default login"
 do_set_default_login
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Create custom services"
 do_create_services
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Enable services"
 do_enable_services
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize GDM"
 do_custom_gdm_wallpaper
 #Install new custom boot theme
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - New custom boot theme"
 do_custom_boot
-
-message "Finish, reboot now"
+sleep 3
+message "Ok all is ok, autoreboot now"
 reboot
