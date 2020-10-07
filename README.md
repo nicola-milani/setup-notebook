@@ -31,4 +31,4 @@ il file "config" definisce alcune variabili di sistema e mappa i file definiti p
 per eseguire il setup rendere setpc.sh eseguibile con 
 chmod +x setpc.sh
 ed eseguirlo con ./setpc.sh
-(Richiede privilegi di root)
+(Richiede privilegi di root e una connessione ad internet)
