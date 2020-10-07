@@ -424,6 +424,12 @@ function do_custom_boot(){
   update-grub
   sleep 2
 }
+
+function do_save_version(){
+  touch $VERSION_FILE
+  echo  $VERSION > $VERSION_FILE
+}
+
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Get configuration"
 . ./config
