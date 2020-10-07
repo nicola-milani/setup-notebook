@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Logout
+Comment=Termina sessione
+Exec=gnome-session-quit --logout
+Icon=/usr/share/icons/Humanity/actions/48/system-log-out.svg
+Terminal=false
+Type=Application
+StartupNotify=true

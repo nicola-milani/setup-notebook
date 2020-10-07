@@ -1,150 +1,229 @@
 #!/bin/bash
-function message()
-{
+N_STEP=19
+STEP=0
+function message(){
     local MSG="$1"
     echo -e "\e[32m$MSG\e[39m"
 }
 
-function error_message()
-{
+function error_message(){
     local MSG="$1"
     echo -e "\e[31m$MSG\e[39m"
 }
 
-message "Update repositories..."
-apt-get update
-if [ $? -gt 0 ]; then
-  echo "Error, can't update repo"
-  exit 1
-fi
-apt-get upgrade -y
-if [ $? -gt 0 ]; then
-  echo "Error, can't upgrade "
-  exit 1
-fi
-apt-get dist-upgrade -y
-if [ $? -gt 0 ]; then
-  echo "Error, can't upgrade"
-  exit 1
-fi
-if [ -f teamviewer_amd64.deb ]; then
-  rm teamviewer_amd64.deb
-fi
-wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-if [ $? -gt 0 ]; then
-  echo "Error, can't download teamviewer"
-  exit 1
-fi
-dpkg --force-depends -i teamviewer_amd64.deb
-apt-get install -y -f
-apt --fix-broken install -y
-if [ $? -gt 0 ]; then
-  echo "Error, can't fix depends"
-  exit 1
-fi
-whereis thunderbird | grep usr
-if [ $? -eq 0 ]; then
-  apt-get purge -y thunderbird*
-  if [ $? -gt 0 ]; then
-    echo "Error, can't remove thunderbird"
+function checkroot(){
+  if [ $(id -u) -gt 0 ]; then
+    sleep 1.5
+    error_message "You are not root"
+    sleep 0.5
+    error_message "Please become root before continue"
+    sleep 1.5
     exit 1
   fi
-fi
-apt purge -y gnome-online-accounts gnome-initial-setup
-apt-get install -y chromium-browser crudini nfs-common git geany libreoffice resolvconf ifupdown net-tools gnome-system-tools openssh-server htop iftop tmux
-if [ $? -gt 0 ]; then
-  echo "Error, can't install package"
-  exit 1
-fi
-yes | snap install code --classic
-if [ $? -gt 0 ]; then
-  echo "Error, can't install code"
-  exit 1
-fi
-yes | snap install remmina
-if [ $? -gt 0 ]; then
-  echo "Error, can't install remmina"
-  exit 1
-fi
-yes | snap install vlc
-if [ $? -gt 0 ]; then
-  echo "Error, can't install vlc"
-  exit 1
-fi
-yes | snap install audacity
-if [ $? -gt 0 ]; then
-  echo "Error, can't install audacity"
-  exit 1
-fi
-service apport stop
-sed -ibak -e s/^enabled\=1$/enabled\=0/ /etc/default/apport
+}
 
-systemctl --user mask tracker-store.service tracker-miner-fs.service tracker-miner-rss.service tracker-extract.service tracker-miner-apps.service tracker-writeback.service
 
-sudo sed -i 's/APT::Periodic::Update-Package-Lists "1"/APT::Periodic::Update-Package-Lists "0"/' /etc/apt/apt.conf.d/20auto-upgrades
-sudo sed -i 's/APT::Periodic::Unattended-Upgrade "1"/APT::Periodic::Unattended-Upgrade "0"/' /etc/apt/apt.conf.d/20auto-upgrades
+function checkconnection(){
+  ping -q -w1 -c1 google.com &>/dev/null && message online || echo offline
+  wget -q --spider http://google.com
+  if [ $? -eq 0 ]; then
+    message "Online"
+  else
+    error_message "Offline"
+    exit 1
+  fi
+}
 
+function do_checkupdate(){
+  apt-get update 
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't update repo"
+    exit 1
+  fi
+}
+
+function do_add_repositories(){
+  message "Add libreoffice repositories"
+  sudo add-apt-repository ppa:libreoffice/ppa -y 
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't update repo"
+    exit 1
+  fi
+}
+
+function do_full_upgrade_system(){
+  message "Upgrade system..."
+  apt-get upgrade -y >> $LOG_FILE
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't upgrade "
+    exit 1
+  fi
+  message "Upgrade from all repository..."
+  apt-get dist-upgrade -y >> $LOG_FILE
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't upgrade"
+    exit 1
+  fi
+}
+
+function do_install_custom_software(){
+  message "Install teamviewer..."
+  if [ ! -f teamviewer_amd64.deb ]; then
+    #rm teamviewer_amd64.deb
+    wget -O teamviewer_amd64.deb https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't download teamviewer"
+      exit 1
+    fi
+  fi
+  dpkg --force-depends -i teamviewer_amd64.deb
+  apt-get install -y -f >> $LOG_FILE
+  apt --fix-broken install -y >> $LOG_FILE
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't fix depends"
+    exit 1
+  fi
+
+  message "Install scratch..."
+  if [ ! -f scratch-desktop_3.15.0_amd64.deb ]; then
+    # rm scratch-desktop_3.15.0_amd64.deb
+    wget -O scratch-desktop_3.15.0_amd64.deb https://sourceforge.net/projects/scratch-deb/files/scratch-desktop_3.15.0_amd64.deb
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't download scratch"
+      exit 1
+    fi
+  fi
+  dpkg -i scratch-desktop_3.15.0_amd64.deb
+  apt-get install -y -f >> $LOG_FILE
+  apt --fix-broken install -y >> $LOG_FILE
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't fix depends"
+    exit 1
+  fi
+}
+
+function do_remove_some_software(){
+  message "Remove thunderbird..."
+  whereis thunderbird | grep usr
+  if [ $? -eq 0 ]; then
+    apt-get purge -y thunderbird* >> $LOG_FILE
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't remove thunderbird"
+      exit 1
+    fi
+  fi
+
+  message "Remove gnome-online-accounts and gnome-initial-setup..."
+  apt purge -y gnome-online-accounts gnome-initial-setup  >> $LOG_FILE
+}
+
+function do_install_apt(){
+  message "Install default list of APT packages..."
+  N_APT=$(cat $APT_PACKAGE_LIST | grep -v '#' | wc -l )
+  i=0
+  for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
+    i=$((i+1))
+    message "Install $i of ${N_APT}: $package"
+    apt-get install -y $package
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't install package"
+      exit 1
+    fi
+  done
+  apt install -f >> $LOG_FILE
+}
+
+function do_install_snap(){
+  message "Install default list of SNAP packages..."
+  N_SNAP=$(cat $SNAP_PACKAGE_LIST | grep -v '#' | wc -l )
+  i=0
+  message "Install default list of SNAP packages..."
+  while read package; do
+    echo $package | grep '#' > /dev/null
+    if [ $? -gt 0 ]; then
+      i=$((i+1))
+      message "Install $i of ${N_SNAP}: $package"
+      yes | snap install $package
+      if [ $? -gt 0 ]; then
+        error_message "Error, can't install $package"
+        exit 1
+      fi
+    fi
+  done < $SNAP_PACKAGE_LIST
+}
+
+function do_remove_services(){
+  message "Remove apport services"
+  service apport stop
+  sed -ibak -e s/^enabled\=1$/enabled\=0/ /etc/default/apport
+
+  message "Remove tracker services"
+  systemctl --user mask tracker-store.service tracker-miner-fs.service tracker-miner-rss.service tracker-extract.service tracker-miner-apps.service tracker-writeback.service
+}
+
+function do_disable_update(){
+  message "Remove autoupdate tracker services"
+  sudo sed -i 's/APT::Periodic::Update-Package-Lists "1"/APT::Periodic::Update-Package-Lists "0"/' /etc/apt/apt.conf.d/20auto-upgrades
+  sudo sed -i 's/APT::Periodic::Unattended-Upgrade "1"/APT::Periodic::Unattended-Upgrade "0"/' /etc/apt/apt.conf.d/20auto-upgrades
+}
+
+function do_custom_dock(){
+message "Add favorites to dock"
 cat > /usr/share/glib-2.0/schemas/90_einaudi.gschema.override << QWK
 [org.gnome.shell]
 favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop', 'com.teamviewer.TeamViewer.desktop', 'geany.desktop','duplicate.desktop' ,'termina-sessione.desktop']
 
 QWK
+
 cat > /usr/share/glib-2.0/schemas/10_gnome-shell.gschema.override << QWK
 [org.gnome.shell]
 favorite-apps = [ 'firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop', 'com.teamviewer.TeamViewer.desktop', 'geany.desktop','duplicate.desktop' ,'termina-sessione.desktop' ]
 
 QWK
 
-cat /etc/passwd | grep studente
-if [ $? -eq 0 ]; then
-  echo -e "studente\nstudente" | passwd studente
-  usermod -p $(openssl passwd -1 "studente") studente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare studente
-else
-  useradd -s /bin/bash --create-home studente
-  echo -e "studente\nstudente" | passwd studente
-  usermod -p $(openssl passwd -1 "studente") studente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare studente
-fi
+  message "Install custom scripts"
+  rsync -av ./usr/ /usr/
+  chmod +x /usr/local/bin/info.sh
+  chmod +x /usr/bin/02-dual-monitor.sh
+  cp ./images/duplica-monitor.png /usr/share/icons/duplica-monitor.png
 
-cat /etc/passwd | grep docente
-if [ $? -eq 0 ]; then
-  echo -e "docente\ndocente" | passwd docente
-  usermod -p $(openssl passwd -1 "docente") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare docente
-else
-  useradd -s /bin/bash --create-home docente
-  echo -e "docente\ndocente" | passwd docente
-  usermod -p $(openssl passwd -1 "docente") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare docente
-fi
+  message "Rebuild glibs"
+  glib-compile-schemas /usr/share/glib-2.0/schemas/
+}
 
-cat /etc/passwd | grep classe
-if [ $? -eq 0 ]; then
-  echo -e "classe\nclasse" | passwd classe
-  usermod -p $(openssl passwd -1 "classe") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare classe
-else
-  useradd -s /bin/bash --create-home classe
-  echo -e "classe\nclasse" | passwd classe
-  usermod -p $(openssl passwd -1 "classe") docente
-  usermod -a -G dialout,cdrom,floppy,tape,audio,dip,video,plugdev,netdev,lpadmin,scanner,sambashare classe
-fi
+function do_fix_network(){
+  message "Add custom dns as default dns"
 
-if [ -f /etc/resolvconf/resolv.conf.d/head ]; then
-  sed -i '/208.67/d' /etc/resolvconf/resolv.conf.d/head
-fi
-echo "nameserver 208.67.222.123" >> /etc/resolvconf/resolv.conf.d/head
-echo "nameserver 208.67.220.123" >> /etc/resolvconf/resolv.conf.d/head
-sed -i '/208.67/d' /etc/dhcp/dhclient.conf
-echo "supersede domain-name-servers 208.67.222.123,208.67.220.123" >> /etc/dhcp/dhclient.conf
+  N_DNS=$(cat $DNS_LIST | grep -v '#' | wc -l )
+  i=0
+  string=""
+  for dns in $(cat $DNS_LIST | grep -v '#'); do
+    i=$((c+1))
+    if [ -f /etc/resolvconf/resolv.conf.d/head ]; then
+      sed -i '/$dns/d' /etc/resolvconf/resolv.conf.d/head
+    fi
+    echo "nameserver $dns" >> /etc/resolvconf/resolv.conf.d/head
+    sed -i '/$dns/d' /etc/dhcp/dhclient.conf
+    if [ -z $string ]; then
+      string=$dns
+    else
+      string=$string,$dns
+    fi
+  done
 
+  echo "supersede domain-name-servers $string" >> /etc/dhcp/dhclient.conf
+  touch /etc/NetworkManager/conf.d/20-connectivity-ubuntu.conf
+}
 
-rm -rf .mozilla
-unzip ./utils/mozilla.zip
-rm -rf /etc/skel/.mozilla
-mv .mozilla /etc/skel/
-mkdir -p /etc/skel/.config/autostart
+function do_custom_skel(){
+  message "Add custom mozilla skel for all users"
+  rm -rf .mozilla
+  unzip ./utils/mozilla.zip
+  rm -rf /etc/skel/.mozilla
+  mv .mozilla /etc/skel/
+
+  message "Add autostart for all users"
+  mkdir -p /etc/skel/.config/autostart
 
 cat > /etc/skel/.config/autostart/info.desktop << QWK
 [Desktop Entry]
@@ -155,70 +234,19 @@ X-GNOME-Autostart-enabled=true
 Name=home_info
 Comment=some info about pc
 QWK
+}
 
-
-cat > /usr/local/bin/info.sh << QWK
-#!/bin/bash
-#Mostra un messaggio
-
-zenity --info --text "Ciao, ricordati che questo PC è di proprietà dell'Istituto Luigi Einaudi di Verona \n\nUsa questo PC solo per scopi didattici, per supporto scrivi a supporto-tecnico@einaudivr.it\n\nSalva i tuoi dati regolarmente su drive o supporto esterno" --height "200" --width "400"
-
-QWK
-
-chmod +x /usr/local/bin/info.sh
-
-cat > /usr/share/applications/termina-sessione.desktop << QWK
-[Desktop Entry]
-Name=Logout
-Comment=Termina sessione
-Exec=gnome-session-quit --logout
-Icon=/usr/share/icons/Humanity/actions/48/system-log-out.svg
-Terminal=false
-Type=Application
-StartupNotify=true
-
-QWK
-
-cp ./images/duplicate.svg /usr/share/icons/duplicate.svg
-cp ./utils/02-dual-monitor.sh /usr/bin/02-dual-monitor.sh
-chmod +x /usr/bin/02-dual-monitor.sh
-
-cat > /usr/share/applications/duplicate.desktop << QWK
-[Desktop Entry]
-Name=Double screen
-Comment=Duplica schermo
-Exec=/usr/bin/02-dual-monitor.sh
-Icon=/usr/share/icons/duplicate.svg
-Terminal=false
-Type=Application
-StartupNotify=true
-
-QWK
-
-glib-compile-schemas /usr/share/glib-2.0/schemas/
-
-rm -r /home/studente
-mkdir /home/studente
-cp -rf -r /etc/skel/.config/ /home/studente/
-cp -rf -r /etc/skel/.mozilla/ /home/studente/
-chown -R studente:studente /home/studente
-
-rm -r /home/docente
-mkdir /home/docente
-cp -rf -r /etc/skel/.config/ /home/docente/
-cp -rf -r /etc/skel/.mozilla/ /home/docente/
-chown -R docente:docente /home/docente
-
-rm -r /home/classe
-mkdir /home/classe
-cp -rf -r /etc/skel/.config/ /home/classe/
-cp -rf -r /etc/skel/.mozilla/ /home/classe/
-chown -R classe:classe /home/classe
-
-mkdir -p /usr/share/images
-cp -rf ./images/logo_transparent.png /usr/share/images/logo.png
-#wget -O /usr/share/images/logo.png https://raw.githubusercontent.com/nicola-milani/setup-notebook/master/images/logo_transparent.png
-cp -rf /etc/gdm3/greeter.dconf-defaults /etc/gdm3/greeter.dconf-defaults.backup
+function do_set_default_login(){
+  message "Find default user"
+  for user in $(cat $USERS_LIST | grep -v '#' ); do
+    if [ $(echo $user | cut -d ";" -f5) -gt 0 ]; then
+      username=$(echo $user | cut -d ";" -f1)
+      password=$(echo $user | cut -d ";" -f2)
+    fi
+    message "Default user is: $username"
+  done
+  cp -rf /etc/gdm3/greeter.dconf-defaults /etc/gdm3/greeter.dconf-defaults.backup
+  message "Fix gmd menu"
 cat > /etc/gdm3/greeter.dconf-defaults << QWK
 #  - Change the GTK+ theme
 [org/gnome/desktop/interface]
@@ -241,7 +269,7 @@ logo='/usr/share/images/logo.png'
  disable-user-list=true
 # - Show a login welcome message
  banner-message-enable=true
- banner-message-text='Benvenuto su ${HOSTNAME} - username e password: "classe"'
+ banner-message-text='Benvenuto su ${HOSTNAME} - username "$username" e password: "$password"'
 
 
 # Automatic suspend
@@ -249,62 +277,16 @@ logo='/usr/share/images/logo.png'
 [org/gnome/settings-daemon/plugins/power]
 QWK
 
-cp -rf ./images/wallpaper.png /usr/share/images/wallpaper.png
+  message "Copy new wallpapers"
+  cp -rf ./images/wallpaper.png /usr/share/images/wallpaper.png
+  mv /usr/share/backgrounds/warty-final-ubuntu.png /usr/share/backgrounds/warty-final.png
+  cp -fRv /usr/share/images/wallpaper.png /usr/share/backgrounds/warty-final-ubuntu.png
+  message "Set autologin for default user"
 
-#wget -O /usr/share/images/wallpaper.png https://raw.githubusercontent.com/nicola-milani/setup-notebook/master/images/wallpaper.png
-#before 20.04
-#cat <<EOT >> /usr/share/gnome-shell/theme/gdm3.css
-##lockDialogGroup {
-#   background: #2c001e url(file:///usr/share/images/wallpaper.png);
-#   background-repeat: no-repeat;
-#   background-size: cover;
-#   background-position: center;
-#}
-#EOT
-
-mv /usr/share/backgrounds/warty-final-ubuntu.png /usr/share/backgrounds/warty-final.png
-cp -fRv /usr/share/images/wallpaper.png /usr/share/backgrounds/warty-final-ubuntu.png
-
-if [ -d persona_all_plymouth ]; then
- rm -rf persona_all_plymouth
-fi
-git clone https://github.com/nicola-milani/persona_all_plymouth.git
-cd persona_all_plymouth
-if ((${EUID:-0} || "$(id -u)")); then
-  
-  sleep 1.5
-  echo "You are not root"
-  sleep 0.5
-  echo "Please run using sudo command"
-  sleep 1.5
-  exit 1
-else
-  
-  sleep 1.5
-  echo "Now you're root user"
-  sleep 3
-  echo "Please be careful!!"
-  sleep 1.5
-  cp -fRv persona_bar /usr/share/plymouth/themes/
-  cp -fRv persona_bar_text /usr/share/plymouth/themes/
-  cp -Rfv persona_circle /usr/share/plymouth/themes/
-
-  sed -i 's/Hi, M. Syarief Hidayatulloh/Benvenuto da ITES Luigi Einaudi/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
-  sed -i 's/Have a Nice Day, Goodbye/A presto!/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
-  cp -Rfv /root/setup-notebook/images/ply-wall.png /usr/share/plymouth/themes/persona_bar_text/ply-wall.png
-  sed -i 's/persona_background.png/ply-wall.png/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
-
-  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_bar/persona_bar.plymouth 100
-  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.plymouth 100
-  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_circle/persona_circle.plymouth 100
-  update-alternatives --set default.plymouth /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.plymouth
-  update-initramfs -u
-fi
-
-groupadd nopasswdlogin
-usermod -a -G nopasswdlogin classe
-sed -i '/nopasswdlogin/d' /etc/dhcp/dhclient.conf
-echo "auth sufficient pam_succeed_if.so user ingroup nopasswdlogin" >> /etc/pam.d/gdm-password
+  groupadd nopasswdlogin
+  usermod -a -G nopasswdlogin $username
+  sed -i '/nopasswdlogin/d' /etc/dhcp/dhclient.conf
+  echo "auth sufficient pam_succeed_if.so user ingroup nopasswdlogin" >> /etc/pam.d/gdm-password
 cat <<EOT > /etc/gdm3/custom.conf 
 # GDM configuration storage
 #
@@ -316,7 +298,7 @@ cat <<EOT > /etc/gdm3/custom.conf
 
 #Enabling automatic login
 AutomaticLoginEnable = true
-AutomaticLogin = classe
+AutomaticLogin = $username
 
 #Enabling timed login
 #TimedLoginEnable = true
@@ -335,34 +317,69 @@ AutomaticLogin = classe
 # Additionally lets the X server dump core if it crashes
 #Enable=true
 EOT
+}
 
-echo "finish"
+function do_create_users(){
+  message "Add users or reset users password and clean home"
+  N_USERS=$(cat $USERS_LIST | grep -v '#' | wc -l )
+  i=0
+  for user in $(cat $USERS_LIST | grep -v '#'); do
+    username=$(echo $user | cut -d ";" -f1 )
+    password=$(echo $user | cut -d ";" -f2 )
+    groups=$(echo $user | cut -d ";" -f3 )
+    clean_home=$(echo $user | cut -d ";" -f4 )
+    i=$((i+1))
+    cat /etc/passwd | grep $username
+    if [ $? -eq 0 ]; then
+      if [ $clean_home -gt 0 ]; then
+        message "Clean home for user: $username"
+        rm -rf /home/$username
+        mkdir /home/$username
+        cp -rf -r /etc/skel/.config/ /home/$username/
+        cp -rf -r /etc/skel/.mozilla/ /home/$username/
+        chown -R $username:$username /home/$username
+      fi
+      message "Reset password for user $username"
+      echo -e "$password\n$password" | passwd $username
+      usermod -p $(openssl passwd -1 "$password") $username
+      usermod -a -G $groups $username
+    else
+      message "Add user n° $i of $N_USERS: $username"
+      useradd -s /bin/bash --create-home $username
+      echo -e "$password\n$password" | passwd $username
+      usermod -p $(openssl passwd -1 "$password") $username
+      usermod -a -G $groups $username
+    fi
+  done
 
-cat <<EOT > /usr/bin/01_clean_home
-#!/bin/bash
-#ifStart=`date '+%d'`
-#if [ $ifStart == 11 ]; then
-rm -r /home/studente
-mkdir /home/studente
-cp -rf -r /etc/skel/.config/ /home/studente/
-cp -rf -r /etc/skel/.mozilla/ /home/studente/
-chown -R studente:studente /home/studente
+}
 
-rm -r /home/docente
-mkdir /home/docente
-cp -rf -r /etc/skel/.config/ /home/docente/
-cp -rf -r /etc/skel/.mozilla/ /home/docente/
-chown -R docente:docente /home/docente
+function do_custom_gdm_wallpaper(){
+  message "Change gdm wallpaper"
+  cd /root/setup-notebook
+  chmod +x ./utils/ubuntu-20.04-change-gdm-background
+  sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper.png"
+}
 
-rm -r /home/classe
-mkdir /home/classe
-cp -rf -r /etc/skel/.config/ /home/classe/
-cp -rf -r /etc/skel/.mozilla/ /home/classe/
-chown -R classe:classe /home/classe
-#fi
-EOT
+function do_create_services(){
+  message "Create service for autoclean home at reboot"
+  echo "#!/bin/bash" > /usr/bin/01_clean_home
+  for user in $(cat $USERS_LIST | grep -v '#'); do
+    username=$(echo $user | cut -d ";" -f1 )
+    clean_home=$(echo $user | cut -d ";" -f4 )
+    if [ $clean_home -gt 0 ]; then
 
-chmod 744 /usr/bin/01_clean_home
+    echo "rm -r /home/$username" >> /usr/bin/01_clean_home
+    echo "mkdir /home/$username"  >> /usr/bin/01_clean_home
+    echo "cp -rf -r /etc/skel/.config/ /home/$username/"  >> /usr/bin/01_clean_home
+    echo "cp -rf -r /etc/skel/.mozilla/ /home/$username/" >> /usr/bin/01_clean_home
+    echo "chown -R $username:$username /home/$username" >> /usr/bin/01_clean_home
+
+    fi
+  done
+
+  chmod 744 /usr/bin/01_clean_home
+
 cat <<EOT > /etc/systemd/system/01_clean_home.service
 [Unit]
 After=network.service
@@ -374,21 +391,120 @@ ExecStart=/usr/bin/01_clean_home
 WantedBy=default.target
 EOT
 
-chmod 664 /etc/systemd/system/01_clean_home.service
-sudo systemctl daemon-reload
-sudo systemctl enable 01_clean_home.service
+}
 
-cd /root/setup-notebook
-chmod +x ./utils/ubuntu-20.04-change-gdm-background
-sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper.png"
+function do_enable_services(){
+  chmod 664 /etc/systemd/system/01_clean_home.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable 01_clean_home.service
+}
 
-touch /etc/NetworkManager/conf.d/20-connectivity-ubuntu.conf
+function do_custom_boot(){
+  message "Install new boot theme"
+  if [ -d persona_all_plymouth ]; then
+    rm -rf persona_all_plymouth
+  fi
+  git clone https://github.com/nicola-milani/persona_all_plymouth.git
+  cd persona_all_plymouth
+  cp -fRv persona_bar /usr/share/plymouth/themes/
+  cp -fRv persona_bar_text /usr/share/plymouth/themes/
+  cp -Rfv persona_circle /usr/share/plymouth/themes/
+  sed -i 's/Hi, M. Syarief Hidayatulloh/Benvenuto da ITES Luigi Einaudi/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
+  sed -i 's/Have a Nice Day, Goodbye/A presto!/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
+  cp -Rfv /root/setup-notebook/images/ply-wall.png /usr/share/plymouth/themes/persona_bar_text/ply-wall.png
+  sed -i 's/persona_background.png/ply-wall.png/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
+  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_bar/persona_bar.plymouth 100
+  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.plymouth 100
+  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_circle/persona_circle.plymouth 100
+  update-alternatives --set default.plymouth /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.plymouth
+  update-initramfs -u
+  sleep 2
+  message "Remove grub timeout"
+  sed -i 's/GRUB_RECORDFAIL_TIMEOUT:-30/GRUB_RECORDFAIL_TIMEOUT:-1/g' /etc/grub.d/00_header
+  update-grub
+  sleep 2
+}
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Get configuration"
+. ./config
 
-echo "finish finish"
+checkroot
 
-sed -i 's/GRUB_RECORDFAIL_TIMEOUT:-30/GRUB_RECORDFAIL_TIMEOUT:-1/g' /etc/grub.d/00_header
-update-grub
+message "Create log direcotory and log file"
+mkdir -p $LOG_PATH
+today=$(date +'%Y-%m-%d')
+LOG_FILE=$LOG_PATH/${today}.log
+message "Check status log in $LOG_FILE"
+touch $LOG_FILE
 
-sleep 2
-
+#check for software update
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Update repositories..."
+do_checkupdate
+#add custom repositories
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - add custom repositories"
+do_add_repositories
+#full upgrade the OS and software
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Upgrade all software"
+do_full_upgrade_system
+#Install teamviewer and scratch
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install custom software"
+do_install_custom_software
+#Remove some software
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Remove unused software"
+do_remove_some_software
+#Install from list of APT packages define in .config file
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install list of APT package"
+do_install_apt
+#Install from list of SNAP packages define in .config file
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install list of SNAP package"
+do_install_snap
+#Remove some services (tracker and apport)
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Disable services"
+do_remove_services
+#Disable autoupdate
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Disable auto update"
+do_disable_update
+#ADD favorites to dock
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize dock"
+do_custom_dock
+#Fix some network details
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Fix some network details"
+do_fix_network
+#Add custom skel for users
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize skel for users"
+do_custom_skel
+#Add or reset users and fix login screen
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Create default users"
+do_create_users
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Set default login"
+do_set_default_login
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Create custom services"
+do_create_services
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Enable services"
+do_enable_services
+#Install new custom boot theme
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - New custom boot theme"
+do_custom_boot
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Customize GDM"
+do_custom_gdm_wallpaper
+sleep 3
+message "Ok all is ok, autoreboot now"
 reboot

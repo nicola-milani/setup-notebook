@@ -108,7 +108,7 @@ if [[ $(file --mime-type -b "$1") == image/*g ]]; then
 	read -p 'Do you want to restart gdm to apply change? (y/n):' -n 1
 	echo
 	if [ "$REPLY" == "y" ]; then
-	    service gdm restart
+	    echo "service gdm restart"
 	else
 	    echo "Change will be applied only after restarting gdm"
 	    echo

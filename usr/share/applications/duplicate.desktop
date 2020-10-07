@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Double screen
+Comment=Duplica schermo
+Exec=/usr/bin/02-dual-monitor.sh
+Icon=/usr/share/icons/duplica-monitor.png
+Terminal=false
+Type=Application
+StartupNotify=true
