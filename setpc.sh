@@ -124,15 +124,18 @@ function do_install_snap(){
   N_SNAP=$(cat $SNAP_PACKAGE_LIST | grep -v '#' | wc -l )
   i=0
   message "Install default list of SNAP packages..."
-  for package in $(cat $SNAP_PACKAGE_LIST | grep -v '#'); do
-    i=$((c+1))
-    message "Install $i of ${N_SNAP}: $package"
-    yes | snap install $package
+  while read package; do
+    echo $package | grep '#' > /dev/null
     if [ $? -gt 0 ]; then
-      error_message "Error, can't install $package"
-      exit 1
+      i=$((c+1))
+      message "Install $i of ${N_SNAP}: $package"
+      yes | snap install $package
+      if [ $? -gt 0 ]; then
+        error_message "Error, can't install $package"
+        exit 1
+      fi
     fi
-  done
+  done < $SNAP_PACKAGE_LIST
 }
 
 function do_remove_services(){
