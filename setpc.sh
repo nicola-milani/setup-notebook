@@ -483,10 +483,6 @@ do_add_repositories
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Upgrade all software"
 do_full_upgrade_system
-#Install teamviewer and scratch
-STEP=$((STEP+1))
-message "Step $STEP of $N_STEP - Install custom software"
-do_install_custom_software
 #Remove some software
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Remove unused software"
@@ -499,6 +495,10 @@ do_install_apt
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Install list of SNAP package"
 do_install_snap
+#Install teamviewer,scratch and lightdm
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install custom software"
+do_install_custom_software
 #Remove some services (tracker and apport)
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Disable services"
