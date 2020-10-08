@@ -515,6 +515,7 @@ do_disable_update
 #ADD favorites to dock
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Customize dock and lightdm"
+do_install_lightdm
 do_custom_dock
 do_set_ligthdm_theme
 #Fix some network details
