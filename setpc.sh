@@ -117,8 +117,8 @@ echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure lightdm
 echo set shared/default-x-display-manager lightdm | debconf-communicate
 sed -i 's/antergos/ein-theme/g' /etc/lightdm/lightdm-webkit2-greeter.conf
-DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure gdm3
-echo set shared/default-x-display-manager gdm3 | debconf-communicate
+#DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure gdm3
+#echo set shared/default-x-display-manager gdm3 | debconf-communicate
 }
 
 function do_remove_some_software(){
