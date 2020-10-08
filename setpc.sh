@@ -114,7 +114,10 @@ cat > /etc/lightdm/lightdm.conf << EOF
 greeter-session=lightdm-webkit2-greeter
 greeter-hide-users=true
 greeter-show-manual-login=true
+session-setup-script=/usr/share/lightdm-webkit/themes/ein-theme/00_init.sh
 session-cleanup-script=/usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
+autologin-user=classe
+
 EOF
 mv /usr/share/wayland-sessions/ubuntu-wayland.desktop /usr/share/wayland-sessions/ubuntu-wayland.desktop.back
 echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
@@ -130,7 +133,8 @@ function do_set_ligthdm_theme(){
   chmod -R 647 /usr/local/share/lightdm-msgs/
   ln /usr/local/share/lightdm-msgs/message_center.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
   chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
-  
+  chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_init.sh
+
 }
 
 function do_remove_some_software(){
