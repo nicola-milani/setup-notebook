@@ -213,6 +213,7 @@ QWK
 
   message "Install custom scripts"
   rsync -av ./usr/ /usr/
+  chmod -R a+w /usr/share/lightdm-webkit/themes/ein-theme
   chmod +x /usr/local/bin/info.sh
   chmod +x /usr/bin/02-dual-monitor.sh
   cp ./images/duplica-monitor.png /usr/share/icons/duplica-monitor.png
