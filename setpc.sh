@@ -101,6 +101,10 @@ function do_install_custom_software(){
     exit 1
   fi
 
+  
+}
+
+function do_install_lightdm(){
   DEBIAN_FRONTEND=noninteractive apt-get install -y lightdm
   wget https://download.opensuse.org/repositories/home:/antergos/xUbuntu_17.10/amd64/lightdm-webkit2-greeter_2.2.5-1+15.31_amd64.deb
   dpkg -i lightdm-webkit2-greeter_2.2.5-1+15.31_amd64.deb
@@ -110,21 +114,22 @@ cat > /etc/lightdm/lightdm.conf << EOF
 greeter-session=lightdm-webkit2-greeter
 greeter-hide-users=true
 greeter-show-manual-login=true
-
+session-cleanup-script=/usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
 EOF
 mv /usr/share/wayland-sessions/ubuntu-wayland.desktop /usr/share/wayland-sessions/ubuntu-wayland.desktop.back
 echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure lightdm
 echo set shared/default-x-display-manager lightdm | debconf-communicate
-sed -i 's/antergos/ein-theme/g' /etc/lightdm/lightdm-webkit2-greeter.conf
-ln -sfn /usr/share/lightdm-webkit/themes/ein-theme/message_center_default.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
-chmod +x /usr/share/libpam-script/close.d/00_restore.sh
-chmod +x /usr/share/libpam-script/open.d/00_init.sh
-chmod +x /usr/share/libpam-script/pam_script_ses_close
-chmod +x /usr/share/libpam-script/pam_script_ses_open
 
 #DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure gdm3
 #echo set shared/default-x-display-manager gdm3 | debconf-communicate
+}
+
+function do_set_ligthdm_theme(){
+  sed -i 's/antergos/ein-theme/g' /etc/lightdm/lightdm-webkit2-greeter.conf
+  cp /usr/share/lightdm-webkit/themes/ein-theme/message_center_default.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
+  chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
+  chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_init.sh
 }
 
 function do_remove_some_software(){
@@ -495,7 +500,7 @@ do_install_apt
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Install list of SNAP package"
 do_install_snap
-#Install teamviewer,scratch and lightdm
+#Install teamviewer,scratch
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Install custom software"
 do_install_custom_software
@@ -509,8 +514,9 @@ message "Step $STEP of $N_STEP - Disable auto update"
 do_disable_update
 #ADD favorites to dock
 STEP=$((STEP+1))
-message "Step $STEP of $N_STEP - Customize dock"
+message "Step $STEP of $N_STEP - Customize dock and lightdm"
 do_custom_dock
+do_set_ligthdm_theme
 #Fix some network details
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Fix some network details"
