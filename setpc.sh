@@ -100,6 +100,41 @@ function do_install_custom_software(){
     error_message "Error, can't fix depends"
     exit 1
   fi
+
+  
+}
+
+function do_install_lightdm(){
+  DEBIAN_FRONTEND=noninteractive apt-get install -y lightdm
+  wget https://download.opensuse.org/repositories/home:/antergos/xUbuntu_17.10/amd64/lightdm-webkit2-greeter_2.2.5-1+15.31_amd64.deb
+  dpkg -i lightdm-webkit2-greeter_2.2.5-1+15.31_amd64.deb
+  touch /etc/lightdm/lightdm.conf
+cat > /etc/lightdm/lightdm.conf << EOF
+[Seat:*]
+greeter-session=lightdm-webkit2-greeter
+greeter-hide-users=true
+greeter-show-manual-login=true
+session-setup-script=/usr/share/lightdm-webkit/themes/ein-theme/00_init.sh
+session-cleanup-script=/usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
+autologin-user=classe
+
+EOF
+mv /usr/share/wayland-sessions/ubuntu-wayland.desktop /usr/share/wayland-sessions/ubuntu-wayland.desktop.back
+echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
+DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure lightdm
+echo set shared/default-x-display-manager lightdm | debconf-communicate
+
+#DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure gdm3
+#echo set shared/default-x-display-manager gdm3 | debconf-communicate
+}
+
+function do_set_ligthdm_theme(){
+  sed -i 's/antergos/ein-theme/g' /etc/lightdm/lightdm-webkit2-greeter.conf
+  chmod -R 647 /usr/local/share/lightdm-msgs/
+  cp /usr/local/share/lightdm-msgs/message_center.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
+  chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
+  chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_init.sh
+
 }
 
 function do_remove_some_software(){
@@ -183,6 +218,7 @@ QWK
 
   message "Install custom scripts"
   rsync -av ./usr/ /usr/
+  chmod -R a+w /usr/share/lightdm-webkit/themes/ein-theme
   chmod +x /usr/local/bin/info.sh
   chmod +x /usr/bin/02-dual-monitor.sh
   cp ./images/duplica-monitor.png /usr/share/icons/duplica-monitor.png
@@ -428,6 +464,9 @@ function do_custom_boot(){
 function do_save_version(){
   touch $VERSION_FILE
   echo  $VERSION > $VERSION_FILE
+  . $VERSION_FILE
+  sed -i "s/hostname/$HOSTNAME/g" /usr/share/lightdm-webkit/themes/ein-theme/message_right.html
+  sed -i "s/version/$SCRIPT_VERSION/g" /usr/share/lightdm-webkit/themes/ein-theme/message_right.html
 }
 
 STEP=$((STEP+1))
@@ -455,10 +494,6 @@ do_add_repositories
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Upgrade all software"
 do_full_upgrade_system
-#Install teamviewer and scratch
-STEP=$((STEP+1))
-message "Step $STEP of $N_STEP - Install custom software"
-do_install_custom_software
 #Remove some software
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Remove unused software"
@@ -471,6 +506,10 @@ do_install_apt
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Install list of SNAP package"
 do_install_snap
+#Install teamviewer,scratch
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Install custom software"
+do_install_custom_software
 #Remove some services (tracker and apport)
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Disable services"
@@ -481,8 +520,10 @@ message "Step $STEP of $N_STEP - Disable auto update"
 do_disable_update
 #ADD favorites to dock
 STEP=$((STEP+1))
-message "Step $STEP of $N_STEP - Customize dock"
+message "Step $STEP of $N_STEP - Customize dock and lightdm"
+do_install_lightdm
 do_custom_dock
+do_set_ligthdm_theme
 #Fix some network details
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Fix some network details"

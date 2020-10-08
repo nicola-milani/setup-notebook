@@ -2,6 +2,7 @@
 chromium-browser
 crudini
 nfs-common
+libpam-script
 git
 geany
 libreoffice
@@ -17,6 +18,8 @@ gimp
 geogebra
 p7zip-full
 gdebi
+kazam
+unrar
 #
 #LANGUAGE PACK FOR CHINESE TRADITIONAL
 #
