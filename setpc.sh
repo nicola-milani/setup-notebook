@@ -127,9 +127,10 @@ echo set shared/default-x-display-manager lightdm | debconf-communicate
 
 function do_set_ligthdm_theme(){
   sed -i 's/antergos/ein-theme/g' /etc/lightdm/lightdm-webkit2-greeter.conf
-  cp /usr/share/lightdm-webkit/themes/ein-theme/message_center_default.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
+  chmod -R 647 /usr/local/share/lightdm-msgs/
+  ln /usr/local/share/lightdm-msgs/message_center.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
   chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_restore.sh
-  chmod +x /usr/share/lightdm-webkit/themes/ein-theme/00_init.sh
+  
 }
 
 function do_remove_some_software(){
