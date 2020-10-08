@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# esci al primo errore e non permettere il login
+set -e
+
+cd /usr/share/libpam-script/open.d
+
+for s in *; do
+    [ -x ${s} ] || continue
+    ./${s}    
+done
+
+stamp=`/bin/date +'%Y%m%d%H%M%S %a'`
+echo LOGIN $stamp $PAM_SERVICE $PAM_TYPE user=$PAM_USER tty=$PAM_TTY | logger -t livenet
+
+exit 0

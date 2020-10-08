@@ -117,6 +117,12 @@ echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure lightdm
 echo set shared/default-x-display-manager lightdm | debconf-communicate
 sed -i 's/antergos/ein-theme/g' /etc/lightdm/lightdm-webkit2-greeter.conf
+ln -sfn /usr/share/lightdm-webkit/themes/ein-theme/message_center_default.html /usr/share/lightdm-webkit/themes/ein-theme/message_center.html
+chmod +x /usr/share/libpam-script/close.d/00_restore.sh
+chmod +x /usr/share/libpam-script/open.d/00_init.sh
+chmod +x /usr/share/libpam-script/pam_script_ses_close
+chmod +x /usr/share/libpam-script/pam_script_ses_open
+
 #DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure gdm3
 #echo set shared/default-x-display-manager gdm3 | debconf-communicate
 }

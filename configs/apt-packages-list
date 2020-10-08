@@ -2,6 +2,7 @@
 chromium-browser
 crudini
 nfs-common
+libpam-script
 git
 geany
 libreoffice
