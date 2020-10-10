@@ -6,3 +6,4 @@ zenity --info --text "In alto a destra viene aggiunto il supporto alla lingua ci
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'it'), ('ibus', 'libpinyin')]"
 gsettings set org.gnome.desktop.a11y always-show-universal-access-status true
 gsettings set org.gnome.desktop.screensaver lock-enabled false
+/usr/bin/02-dual-monitor.sh
