@@ -1,16 +1,18 @@
 function startTime() {
-    var today=new Date();
-    var h=today.getHours();
-    var m=today.getMinutes();
-    m=checkTime(m);
-    document.getElementById('clock').innerHTML=h+":"+m;
+    var today = new Date();
+    var h = today.getHours();
+    var m = today.getMinutes();
+    var s = today.getSeconds();
+    m = checkTime(m);
+    document.getElementById('clock').innerHTML = h + ":" + m + ":" + s;
 
-    t=setTimeout('startTime()', 500)
+    t = setTimeout('startTime()', 500)
 }
+
 function checkTime(i) {
-    if (i<10) {
-        i="0" + i;
+    if (i < 10) {
+        i = "0" + i;
     }
     return i
 }
-window.onload=startTime;
+window.onload = startTime;
