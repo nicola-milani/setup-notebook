@@ -521,9 +521,9 @@ do_disable_update
 #ADD favorites to dock
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Customize dock and lightdm"
-do_install_lightdm
+#do_install_lightdm
 do_custom_dock
-do_set_ligthdm_theme
+#do_set_ligthdm_theme
 #Fix some network details
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Fix some network details"
@@ -553,7 +553,7 @@ STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Customize GDM"
 do_custom_gdm_wallpaper
 message "Step $STEP of $N_STEP - Update current version"
-do_save_version
+#do_save_version
 
 sleep 3
 message "Ok all is ok, autoreboot now"
