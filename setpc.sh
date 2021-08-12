@@ -158,6 +158,15 @@ function do_install_apt(){
   i=0
   for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
     i=$((i+1))
+    message "Download $i of ${N_APT}: $package"
+    apt-get install -d $package > /dev/null
+    if [ $? -gt 0 ]; then
+      error_message "Error, can't install package"
+      exit 1
+    fi
+  done
+  for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
+    i=$((i+1))
     message "Install $i of ${N_APT}: $package"
     apt-get install -y $package > /dev/null
     if [ $? -gt 0 ]; then
