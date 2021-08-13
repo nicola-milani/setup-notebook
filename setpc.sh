@@ -457,6 +457,7 @@ function do_custom_boot(){
   sed -i 's/Hi, M. Syarief Hidayatulloh/Benvenuto da ITES Luigi Einaudi/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
   sed -i 's/Have a Nice Day, Goodbye/A presto!/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
   cp -Rfv /root/setup-notebook/images/ply-wall.png /usr/share/plymouth/themes/persona_bar_text/ply-wall.png
+  cp -Rfv /root/setup-notebook/images/personanew.png /usr/share/plymouth/themes/persona_bar_text/persona.png
   sed -i 's/persona_background.png/ply-wall.png/g' /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.script
   update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_bar/persona_bar.plymouth 100
   update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/persona_bar_text/persona_bar_text.plymouth 100
