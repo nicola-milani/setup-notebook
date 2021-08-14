@@ -240,7 +240,9 @@ QWK
   chmod +x /usr/local/bin/info.sh
   chmod +x /usr/bin/02-dual-monitor.sh
   cp ./images/duplica-monitor.png /usr/share/icons/duplica-monitor.png
+  cp ./images/duplica-monitor-64.png /usr/share/icons/duplica-monitor-64.png
   cp ./images/googleLogo.png /usr/share/icons/googleLogo.png
+  cp ./images/language-selector.png /usr/share/icons/language-selector.png
   message "Rebuild glibs"
   glib-compile-schemas /usr/share/glib-2.0/schemas/
 }
