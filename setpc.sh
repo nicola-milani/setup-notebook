@@ -1,5 +1,5 @@
 #!/bin/bash
-N_STEP=20
+N_STEP=21
 STEP=0
 function message(){
     local MSG="$1"
@@ -11,6 +11,15 @@ function error_message(){
     echo -e "\e[31m$MSG\e[39m"
 }
 
+function do_set_language(){
+   locale-gen it_IT.UTF-8
+   locale-gen en_GB.UTF-8
+   update-locale LANG=it_IT.UTF-8 LANGUAGE=it:en_GB:en
+   echo Europe/Rome > /etc/timezone 
+   cat /etc/timezone 
+   cp /usr/share/zoneinfo/Europe/Rome /etc/localtime 
+
+}
 function checkroot(){
   if [ $(id -u) -gt 0 ]; then
     sleep 1.5
@@ -562,6 +571,10 @@ do_custom_boot
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Customize GDM"
 do_custom_gdm_wallpaper
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Set Language and localtime"
+do_set_language
+
 message "Step $STEP of $N_STEP - Update current version"
 #do_save_version
 

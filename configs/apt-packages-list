@@ -39,3 +39,32 @@ libreoffice-l10n-zh-cn
 libreoffice-help-zh-cn
 firefox-locale-zh-hans
 chromium-browser-l10n
+##ITALIAN LANGUAGE PACK
+language-pack-it
+firefox-locale-it
+gimp-help-it
+gnome-getting-started-docs-it
+gnome-user-docs-it
+hunspell-it
+hyphen-it
+language-pack-gnome-it
+libreoffice-help-it
+libreoffice-l10n-it 
+mythes-it 
+witalian
+##ENGLISH LANGUAGE PACK
+language-pack-en
+gimp-help-en
+hunspell-en-au
+hunspell-en-ca
+hunspell-en-gb
+hunspell-en-za
+hyphen-en-ca
+hyphen-en-gb
+hyphen-en-us
+libreoffice-help-en-gb
+libreoffice-help-en-us
+libreoffice-l10n-en-gb
+libreoffice-l10n-en-za
+mythes-en-au
+mythes-en-us
