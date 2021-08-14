@@ -1,5 +1,7 @@
 #!/bin/bash
 #Prepara la sessione di lavoro con alcuni accorgimenti
+gsettings set org.gnome.shell.extensions.ding show-home false
+gsettings set org.gnome.shell.extensions.ding show-trash false
 gsettings set org.gnome.mutter center-new-windows true
 gsettings set org.gnome.desktop.screensaver lock-enabled false
 gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop', 'code_code.desktop', 'kazam.desktop', 'org.gnome.Screenshot.desktop', 'scratch-desktop.desktop', 'duplicate.desktop', 'termina-sessione.desktop']"
