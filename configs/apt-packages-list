@@ -1,4 +1,8 @@
 #INSTALL PACKAGE
+clamav
+clamav-daemon
+clamtk
+clamtk-gnome
 chromium-browser
 crudini
 nfs-common
