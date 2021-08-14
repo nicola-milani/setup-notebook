@@ -412,7 +412,7 @@ function do_custom_gdm_wallpaper(){
   message "Change gdm wallpaper"
   cd /root/setup-notebook
   chmod +x ./utils/ubuntu-20.04-change-gdm-background
-  sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper.png"
+  sudo bash -c "yes | ./utils/ubuntu-20.04-change-gdm-background ./images/wallpaper-dark.png"
 }
 
 function do_create_services(){
