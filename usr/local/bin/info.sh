@@ -1,6 +1,7 @@
 #!/bin/bash
 #Prepara la sessione di lavoro con alcuni accorgimenti
-
+gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size 30
+gsettings set org.gnome.desktop.interface show-battery-percentage true
 #set menu
 gnome-extensions enable arc-menu@linxgem33.com
 #gsettings set org.gnome.shell.extensions.arc-menu menu-layout "Plasma"

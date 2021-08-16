@@ -296,6 +296,8 @@ X-GNOME-Autostart-enabled=true
 Name=home_info
 Comment=some info about pc
 QWK
+
+cp /usr/share/applications/org.flameshot.Flameshot.desktop /etc/skel/.config/autostart/
 }
 
 function do_set_default_login(){
