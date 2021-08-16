@@ -12,7 +12,7 @@ function error_message(){
 }
 
 function do_set_extensions(){
-cp /usr/share/gnome-shell/extensions/arc-menu\@linxgem33.com/schemas/org.gnome.shell.extensions.arc-menu.gschema.xml /usr/share/glib-2.0/schemaso
+cp /usr/share/gnome-shell/extensions/arc-menu\@linxgem33.com/schemas/org.gnome.shell.extensions.arc-menu.gschema.xml /usr/share/glib-2.0/schemas/
 glib-compile-schemas /usr/share/glib-2.0/schemas/
 
 }
@@ -179,6 +179,7 @@ function do_install_apt(){
       exit 1
     fi
   done
+  i=0
   for package in $(cat $APT_PACKAGE_LIST | grep -v '#'); do
     i=$((i+1))
     message "Install $i of ${N_APT}: $package"
