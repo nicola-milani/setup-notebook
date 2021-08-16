@@ -1,4 +1,6 @@
 #INSTALL PACKAGE
+nodejs
+npm
 default-jre
 default-jdk
 python3-pip
