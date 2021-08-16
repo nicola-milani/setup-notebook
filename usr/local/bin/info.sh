@@ -2,7 +2,7 @@
 #Prepara la sessione di lavoro con alcuni accorgimenti
 
 #set menu
-
+gnome-extensions enable arc-menu@linxgem33.com
 gsettings set org.gnome.shell.extensions.arc-menu arc-menu-placement "DTD"
 #gsettings set org.gnome.shell.extensions.arc-menu menu-layout "Plasma"
 #gsettings set org.gnome.shell.extensions.arc-menu plasma-show-descriptions true
