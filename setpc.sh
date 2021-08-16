@@ -81,6 +81,20 @@ function do_full_upgrade_system(){
 }
 
 function do_install_custom_software(){
+  cp ./images/wikipediait.png /usr/share/icons/
+  cat > /usr/share/applications/wiki2map.desktop << QWK
+[Desktop Entry]
+Version=1.0
+Name=Wiki 2 Map (online)
+Comment=Crea una mappa dei contenuti di Wikipedia
+Exec=xdg-open https://www.wiki2map.org/
+Icon=wikipediait
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=SDL-MAP;
+QWK
+
   message "Install teamviewer..."
   if [ ! -f teamviewer_amd64.deb ]; then
     #rm teamviewer_amd64.deb
@@ -115,7 +129,28 @@ function do_install_custom_software(){
     exit 1
   fi
 
-  
+  #install iptv reader
+  wget -O hypnotix.deb https://github.com/linuxmint/hypnotix/releases/download/1.1/hypnotix_1.1_all.deb
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't download hypnotix"
+    exit 1
+  fi
+  dpkg -i hypnotix.deb > /dev/null
+  apt-get install -y -f > /dev/null
+  apt --fix-broken install -y > /dev/null
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't fix depends"
+    exit 1
+  fi
+  #install obs studio
+  apt-get install -y ffmpeg
+  add-apt-repository ppa:obsproject/obs-studio -y
+  apt install -y obs-studio
+
+  #Install cmaptools
+ # wget -O cmap.bin https://cmapdownload.ihmc.us/installs/CmapTools/Linux/Linux64CmapTools_v6.04_09-24-19.bin
+  #chmod +x cmap.bin -i silent -f installer.properties
+#
 }
 
 function do_install_lightdm(){

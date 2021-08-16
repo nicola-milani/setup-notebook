@@ -18,8 +18,8 @@ gnome-extensions enable arc-menu@linxgem33.com
 
 
 gsettings set org.gnome.shell.extensions.arc-menu menu-layout 'Brisk'
-#gsettings set org.gnome.shell.extensions.arc-menu brisk-shortcuts-list "['Downloads', 'ArcMenu_Downloads', 'ArcMenu_Downloads', 'Settings', 'preferences-system-symbolic', 'gnome-control-center.desktop']"
-#gsettings set org.gnome.shell.extensions.arc-menu disable-recently-installed-apps false
+gsettings set org.gnome.shell.extensions.arc-menu disable-recently-installed-apps true
+gsettings set org.gnome.shell.extensions.arc-menu brisk-shortcuts-list "['Downloads', 'ArcMenu_Downloads', 'ArcMenu_Downloads', 'Settings', 'preferences-system-symbolic', 'gnome-control-center.desktop']"
 #gsettings set org.gnome.shell.extensions.arc-menu directory-shortcuts-list "[['Home', 'ArcMenu_Home', 'ArcMenu_Home'], ['Downloads', 'ArcMenu_Downloads', 'ArcMenu_Downloads']]"
 gsettings set org.gnome.shell.extensions.arc-menu reload-theme true
 gsettings set org.gnome.shell.extensions.arc-menu reload-theme false

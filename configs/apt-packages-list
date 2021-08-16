@@ -1,10 +1,23 @@
 #INSTALL PACKAGE
-nodejs
-smbclient
+##############################
+#Library and development tools
+libxapp1
+libmpv1
+python3-imdbpy
 npm
 default-jre
 default-jdk
 python3-pip
+nodejs
+###############################
+#Audio and Media
+vokoscreen
+openshot
+kolourpaint
+audacity
+gimp
+#System Tools
+smbclient
 gnome-shell-extension-arc-menu
 apache2
 flameshot
@@ -27,7 +40,6 @@ openssh-server
 htop
 iftop
 tmux
-gimp
 geogebra
 p7zip-full
 gdebi
