@@ -1,5 +1,5 @@
 #!/bin/bash
-N_STEP=21
+N_STEP=22
 STEP=0
 function message(){
     local MSG="$1"
@@ -11,6 +11,11 @@ function error_message(){
     echo -e "\e[31m$MSG\e[39m"
 }
 
+function do_set_extensions(){
+cp /usr/share/gnome-shell/extensions/arc-menu\@linxgem33.com/schemas/org.gnome.shell.extensions.arc-menu.gschema.xml /usr/share/glib-2.0/schemaso
+glib-compile-schemas /usr/share/glib-2.0/schemas/
+
+}
 function do_set_language(){
    locale-gen it_IT.UTF-8
    locale-gen en_GB.UTF-8
@@ -576,6 +581,9 @@ do_custom_gdm_wallpaper
 STEP=$((STEP+1))
 message "Step $STEP of $N_STEP - Set Language and localtime"
 do_set_language
+STEP=$((STEP+1))
+message "Step $STEP of $N_STEP - Set gnome extensions"
+do_set_extensions
 
 message "Step $STEP of $N_STEP - Update current version"
 #do_save_version

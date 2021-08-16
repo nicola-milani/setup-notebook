@@ -1,5 +1,22 @@
 #!/bin/bash
 #Prepara la sessione di lavoro con alcuni accorgimenti
+
+#set menu
+
+gsettings set org.gnome.shell.extensions.arc-menu arc-menu-placement "DTD"
+#gsettings set org.gnome.shell.extensions.arc-menu menu-layout "Plasma"
+#gsettings set org.gnome.shell.extensions.arc-menu plasma-show-descriptions true
+#gsettings set org.gnome.shell.extensions.arc-menu plasma-selected-color 'rgb(229,165,10)'
+#gsettings set org.gnome.shell.extensions.arc-menu show-external-devices true
+#gsettings set org.gnome.shell.extensions.arc-menu extra-categories [(0, true), (1, true), (2, true), (3, false)]
+#<me-control-center.desktop'], ['Terminal', 'utilities-terminal-symbolic', 'org.gnome.Terminal.desktop'], ['Activities Overview', 'view-fullscreen-symbolic', 'ArcMenu_ActivitiesOverview']]
+#gsettings set org.gnome.shell.extensions.arc-menu reload-theme true
+#gsettings set org.gnome.shell.extensions.arc-menu reload-theme false
+gsettings set org.gnome.shell.extensions.arc-menu menu-layout "Dashboard"
+gsettings set org.gnome.shell.extensions.arc-menu reload-theme true
+gsettings set org.gnome.shell.extensions.arc-menu reload-theme false
+
+
 gsettings set org.gnome.shell.extensions.ding show-home false
 gsettings set org.gnome.shell.extensions.ding show-trash false
 gsettings set org.gnome.mutter center-new-windows true
