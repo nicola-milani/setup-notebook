@@ -1,10 +1,13 @@
 #INSTALL PACKAGE
 nodejs
+smbclient
 npm
 default-jre
 default-jdk
 python3-pip
 gnome-shell-extension-arc-menu
+apache2
+flameshot
 clamav
 clamav-daemon
 clamtk
