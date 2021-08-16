@@ -1,4 +1,7 @@
 #INSTALL PACKAGE
+default-jre
+default-jdk
+python3-pip
 gnome-shell-extension-arc-menu
 clamav
 clamav-daemon
