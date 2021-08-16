@@ -1,3 +1,6 @@
+#!/bin/bash
+yad --info --image=/usr/share/icons/language-selector.png --text "Installazione estensioni per visual studio code"  --button=gtk-ok:1 --title="Visual studio setup" --fixed --borders=30 --escape-ok --center
+
 code --install-extension ms-vscode.cpptools
 code --install-extension ms-python.python
 code --install-extension janisdd.vscode-edit-csv

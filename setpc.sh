@@ -146,7 +146,10 @@ QWK
   apt-get install -y ffmpeg
   add-apt-repository ppa:obsproject/obs-studio -y
   apt install -y obs-studio
-
+  apt-get install -f 
+  echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections  
+  apt install -y ttf-mscorefonts-installer
+  fc-cache -f -v
   #Install cmaptools
  # wget -O cmap.bin https://cmapdownload.ihmc.us/installs/CmapTools/Linux/Linux64CmapTools_v6.04_09-24-19.bin
   #chmod +x cmap.bin -i silent -f installer.properties
