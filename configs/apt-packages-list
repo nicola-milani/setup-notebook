@@ -1,6 +1,7 @@
 #INSTALL PACKAGE
 ##############################
 #Library and development tools
+numix-icon-theme-circle
 libxapp1
 libmpv1
 python3-imdbpy
