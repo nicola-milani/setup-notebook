@@ -63,6 +63,13 @@ function do_add_repositories(){
     error_message "Error, can't update repo"
     exit 1
   fi
+  message "Add new set icon numix"
+  sudo add-apt-repository ppa:numix/ppa -y > /dev/null
+  if [ $? -gt 0 ]; then
+    error_message "Error, can't update repo"
+    exit 1
+  fi
+
 }
 
 function do_full_upgrade_system(){
